@@ -15,6 +15,13 @@ fun main(vararg args: String) {
                     rawCoordinates[0].replace("[", "").toInt() to rawCoordinates[1].replace("]", "").toInt()
                 }
         }
+    val map: Pair<Int, Int>? = args
+        .filter { it.startsWith("-map") }
+        .getOrNull(0)
+        ?.let {
+            val rawMap = it.split("=")[1].split("x")
+            rawMap[0].toInt() to rawMap[1].toInt()
+        }
 
     val x = start.split("=")[1].split(",")[0].toInt()
     val y = start.split("=")[1].split(",")[1].toInt()
@@ -24,7 +31,7 @@ fun main(vararg args: String) {
     var newY = y
     var newD = d
 
-    var dirmsg = when (command) {
+    val dirmsg = when (command) {
         "f" -> "Rover moved forward"
         "b" -> "Rover moved backward"
         "l" -> "Rover turned left"
@@ -55,6 +62,8 @@ fun main(vararg args: String) {
 
     if (obstacles != null && obstacles.contains(newX to newY)) {
         msg = "Obstacle encountered at [$newX,$newY]. Current [$x,$y:$d]"
+    } else if (map != null && (newX < 0 || newX >= map.first || newY < 0 || newY >= map.second)) {
+        msg = "Boundary encountered at [$x,$y]. Current [$x,$y:$d]"
     } else {
         msg = "$dirmsg. Current [$newX,$newY:$newD]"
     }

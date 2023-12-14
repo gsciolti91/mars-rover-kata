@@ -4,12 +4,27 @@ fun main(vararg args: String) {
 
     val start = args.filter { it.startsWith("-start") }.first()
     val command = args.filter { it.startsWith("-command") }.first().split("=")[1]
+    val obstacles: List<Pair<Int, Int>>? = args
+        .filter { it.startsWith("-obstacles") }
+        .getOrNull(0)
+        ?.let {
+            it.split("=")[1]
+                .split(";")
+                .map {
+                    val rawCoordinates = it.split(",")
+                    rawCoordinates[0].replace("[", "").toInt() to rawCoordinates[1].replace("]", "").toInt()
+                }
+        }
 
-    var x = start.split("=")[1].split(",")[0].toInt()
-    var y = start.split("=")[1].split(",")[1].toInt()
-    var d = start.split("=")[1].split(",")[2]
+    val x = start.split("=")[1].split(",")[0].toInt()
+    val y = start.split("=")[1].split(",")[1].toInt()
+    val d = start.split("=")[1].split(",")[2]
 
-    val msg = when (command) {
+    var newX = x
+    var newY = y
+    var newD = d
+
+    var dirmsg = when (command) {
         "f" -> "Rover moved forward"
         "b" -> "Rover moved backward"
         "l" -> "Rover turned left"
@@ -18,23 +33,31 @@ fun main(vararg args: String) {
     }
 
     when (Pair(command, d)) {
-        "f" to "n" -> y++
-        "f" to "e" -> x++
-        "f" to "s" -> y--
-        "f" to "w" -> x--
-        "b" to "n" -> y--
-        "b" to "e" -> x--
-        "b" to "s" -> y++
-        "b" to "w" -> x++
-        "l" to "n" -> d = "w"
-        "l" to "e" -> d = "n"
-        "l" to "s" -> d = "e"
-        "l" to "w" -> d = "s"
-        "r" to "n" -> d = "e"
-        "r" to "e" -> d = "s"
-        "r" to "s" -> d = "w"
-        "r" to "w" -> d = "n"
+        "f" to "n" -> newY++
+        "f" to "e" -> newX++
+        "f" to "s" -> newY--
+        "f" to "w" -> newX--
+        "b" to "n" -> newY--
+        "b" to "e" -> newX--
+        "b" to "s" -> newY++
+        "b" to "w" -> newX++
+        "l" to "n" -> newD = "w"
+        "l" to "e" -> newD = "n"
+        "l" to "s" -> newD = "e"
+        "l" to "w" -> newD = "s"
+        "r" to "n" -> newD = "e"
+        "r" to "e" -> newD = "s"
+        "r" to "s" -> newD = "w"
+        "r" to "w" -> newD = "n"
     }
 
-    println("$msg. Current [$x,$y:$d]")
+    val msg: String
+
+    if (obstacles != null && obstacles.contains(newX to newY)) {
+        msg = "Obstacle encountered at [$newX,$newY]. Current [$x,$y:$d]"
+    } else {
+        msg = "$dirmsg. Current [$newX,$newY:$newD]"
+    }
+
+    println(msg)
 }

@@ -84,7 +84,8 @@ fun main(vararg args: String) {
             println("Obstacle encountered at [$newX,$newY]. Current [$currentX,$currentY:$currentD]")
             break
         } else if (map != null && (newX < 0 || newX >= map.first || newY < 0 || newY >= map.second)) {
-            msg = "Boundary encountered at [$startX,$startY]. Current [$startX,$startY:$startD]"
+            println("Boundary encountered at [$currentX,$currentY]. Current [$currentX,$currentY:$currentD]")
+            break
         } else {
             msg = "$dirmsg. Current [$newX,$newY:$newD]"
 

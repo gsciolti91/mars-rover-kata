@@ -42,7 +42,10 @@ fun main(vararg args: String) {
             "b" -> "Rover moved backward"
             "l" -> "Rover turned left"
             "r" -> "Rover turned right"
-            else -> "Invalid command '$cmd'"
+            else -> {
+                println("Invalid command '$cmd'. Current [$newX,$newY:$newD]")
+                break
+            }
         }
 
         when (Pair(cmd, newD)) {

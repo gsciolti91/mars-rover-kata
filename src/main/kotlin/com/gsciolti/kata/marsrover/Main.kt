@@ -9,12 +9,12 @@ fun main(vararg args: String) {
     var y = start.split("=")[1].split(",")[1].toInt()
     var d = start.split("=")[1].split(",")[2]
 
-    var msg = when (command) {
-        "f" -> "moved forward"
-        "b" -> "moved backward"
-        "l" -> "turned left"
-        "r" -> "turned right"
-        else -> TODO("Unrecognized command")
+    val msg = when (command) {
+        "f" -> "Rover moved forward"
+        "b" -> "Rover moved backward"
+        "l" -> "Rover turned left"
+        "r" -> "Rover turned right"
+        else -> "Invalid command '$command'"
     }
 
     when (Pair(command, d)) {
@@ -36,5 +36,5 @@ fun main(vararg args: String) {
         "r" to "w" -> d = "n"
     }
 
-    println("Rover $msg. Current [$x,$y:$d]")
+    println("$msg. Current [$x,$y:$d]")
 }

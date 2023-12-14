@@ -27,7 +27,7 @@ fun main(vararg args: String) {
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
-    val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
+    var currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
     var currentD = start.split(",")[2]
 
     val newPosition = currentPosition.copy()
@@ -73,7 +73,7 @@ fun main(vararg args: String) {
             if (newPosition.y == -1) newPosition.y = map.second - 1
         }
 
-        if (map != null && (newPosition.x < 0 || newPosition.x >= map.first || newPosition.y < 0 || newPosition.y >= map.second)) {
+        if (map != null && newPosition.isOutsideOf(map)) {
             println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
             break
         } else if (obstacles != null && obstacles.contains(newPosition.x to newPosition.y)) {
@@ -82,8 +82,7 @@ fun main(vararg args: String) {
         } else {
             println("$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]")
 
-            currentPosition.x = newPosition.x
-            currentPosition.y = newPosition.y
+            currentPosition = newPosition.copy()
             currentD = newD
         }
     }

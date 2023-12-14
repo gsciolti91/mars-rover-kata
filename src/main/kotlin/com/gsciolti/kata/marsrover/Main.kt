@@ -15,11 +15,15 @@ fun main(vararg args: String) {
                     rawCoordinates[0].replace("[", "").toInt() to rawCoordinates[1].replace("]", "").toInt()
                 }
         }
+    var mapType = ""
     val map: Pair<Int, Int>? = args
         .filter { it.startsWith("-map") }
         .getOrNull(0)
         ?.let {
-            val rawMap = it.split("=")[1].split("x")
+            val rawMapAndType = it.split("=")[1].split(",")
+            val rawMap = rawMapAndType[0].split("x")
+            mapType = rawMapAndType.getOrElse(1) { "" }
+
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
@@ -56,6 +60,13 @@ fun main(vararg args: String) {
         "r" to "e" -> newD = "s"
         "r" to "s" -> newD = "w"
         "r" to "w" -> newD = "n"
+    }
+
+    if (map != null && mapType == "w") {
+        if (newX == map.first) newX = 0
+        if (newX == -1) newX = map.first - 1
+        if (newY == map.second) newY = 0
+        if (newY == -1) newY = map.second - 1
     }
 
     val msg: String

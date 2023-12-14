@@ -75,11 +75,11 @@ fun main(vararg args: String) {
 
         val msg: String
 
-        if (obstacles != null && obstacles.contains(newPosition.x to newPosition.y)) {
-            println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
-            break
-        } else if (map != null && (newPosition.x < 0 || newPosition.x >= map.first || newPosition.y < 0 || newPosition.y >= map.second)) {
+        if (map != null && (newPosition.x < 0 || newPosition.x >= map.first || newPosition.y < 0 || newPosition.y >= map.second)) {
             println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+            break
+        } else if (obstacles != null && obstacles.contains(newPosition.x to newPosition.y)) {
+            println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
             break
         } else {
             msg = "$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]"

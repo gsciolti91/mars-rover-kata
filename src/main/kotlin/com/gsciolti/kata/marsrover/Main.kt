@@ -73,8 +73,6 @@ fun main(vararg args: String) {
             if (newPosition.y == -1) newPosition.y = map.second - 1
         }
 
-        val msg: String
-
         if (map != null && (newPosition.x < 0 || newPosition.x >= map.first || newPosition.y < 0 || newPosition.y >= map.second)) {
             println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
             break
@@ -82,13 +80,11 @@ fun main(vararg args: String) {
             println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
             break
         } else {
-            msg = "$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]"
+            println("$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]")
 
             currentPosition.x = newPosition.x
             currentPosition.y = newPosition.y
             currentD = newD
         }
-
-        println(msg)
     }
 }

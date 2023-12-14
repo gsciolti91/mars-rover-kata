@@ -28,13 +28,17 @@ fun main(vararg args: String) {
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
-    val x = start.split("=")[1].split(",")[0].toInt()
-    val y = start.split("=")[1].split(",")[1].toInt()
-    val d = start.split("=")[1].split(",")[2]
+    val startX = start.split("=")[1].split(",")[0].toInt()
+    val startY = start.split("=")[1].split(",")[1].toInt()
+    val startD = start.split("=")[1].split(",")[2]
 
-    var newX = x
-    var newY = y
-    var newD = d
+    var currentX = startX
+    var currentY = startY
+    var currentD = startD
+
+    var newX = currentX
+    var newY = currentY
+    var newD = currentD
 
     for (cmd in commands) {
         val dirmsg = when (cmd) {
@@ -43,20 +47,20 @@ fun main(vararg args: String) {
             "l" -> "Rover turned left"
             "r" -> "Rover turned right"
             else -> {
-                println("Invalid command '$cmd'. Current [$newX,$newY:$newD]")
+                println("Invalid command '$cmd'. Current [$currentX,$currentY:$currentD]")
                 break
             }
         }
 
-        when (Pair(cmd, newD)) {
-            "f" to "n" -> newY++
-            "f" to "e" -> newX++
-            "f" to "s" -> newY--
-            "f" to "w" -> newX--
-            "b" to "n" -> newY--
-            "b" to "e" -> newX--
-            "b" to "s" -> newY++
-            "b" to "w" -> newX++
+        when (Pair(cmd, currentD)) {
+            "f" to "n" -> newY = currentY + 1
+            "f" to "e" -> newX = currentX + 1
+            "f" to "s" -> newY = currentY - 1
+            "f" to "w" -> newX = currentX - 1
+            "b" to "n" -> newY = currentY - 1
+            "b" to "e" -> newX = currentX - 1
+            "b" to "s" -> newY = currentY + 1
+            "b" to "w" -> newX = currentX + 1
             "l" to "n" -> newD = "w"
             "l" to "e" -> newD = "n"
             "l" to "s" -> newD = "e"
@@ -77,11 +81,16 @@ fun main(vararg args: String) {
         val msg: String
 
         if (obstacles != null && obstacles.contains(newX to newY)) {
-            msg = "Obstacle encountered at [$newX,$newY]. Current [$x,$y:$d]"
+            println("Obstacle encountered at [$newX,$newY]. Current [$currentX,$currentY:$currentD]")
+            break
         } else if (map != null && (newX < 0 || newX >= map.first || newY < 0 || newY >= map.second)) {
-            msg = "Boundary encountered at [$x,$y]. Current [$x,$y:$d]"
+            msg = "Boundary encountered at [$startX,$startY]. Current [$startX,$startY:$startD]"
         } else {
             msg = "$dirmsg. Current [$newX,$newY:$newD]"
+
+            currentX = newX
+            currentY = newY
+            currentD = newD
         }
 
         println(msg)

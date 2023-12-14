@@ -28,13 +28,9 @@ fun main(vararg args: String) {
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
-    val startX = start.split("=")[1].split(",")[0].toInt()
-    val startY = start.split("=")[1].split(",")[1].toInt()
-    val startD = start.split("=")[1].split(",")[2]
-
-    var currentX = startX
-    var currentY = startY
-    var currentD = startD
+    var currentX = start.split("=")[1].split(",")[0].toInt()
+    var currentY = start.split("=")[1].split(",")[1].toInt()
+    var currentD = start.split("=")[1].split(",")[2]
 
     var newX = currentX
     var newY = currentY

@@ -30,7 +30,7 @@ fun main(vararg args: String) {
     val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
     var currentD = start.split(",")[2]
 
-    var newPosition = currentPosition.copy()
+    val newPosition = currentPosition.copy()
     var newD = currentD
 
     val commands = command.split(",")
@@ -48,14 +48,14 @@ fun main(vararg args: String) {
         }
 
         when (Pair(cmd, currentD)) {
-            "f" to "n" -> newPosition = currentPosition.increaseY()
-            "f" to "e" -> newPosition = currentPosition.increaseX()
-            "f" to "s" -> newPosition = currentPosition.decreaseY()
-            "f" to "w" -> newPosition = currentPosition.decreaseX()
-            "b" to "n" -> newPosition = currentPosition.decreaseY()
-            "b" to "e" -> newPosition = currentPosition.decreaseX()
-            "b" to "s" -> newPosition = currentPosition.increaseY()
-            "b" to "w" -> newPosition = currentPosition.increaseX()
+            "f" to "n" -> newPosition.increaseY()
+            "f" to "e" -> newPosition.increaseX()
+            "f" to "s" -> newPosition.decreaseY()
+            "f" to "w" -> newPosition.decreaseX()
+            "b" to "n" -> newPosition.decreaseY()
+            "b" to "e" -> newPosition.decreaseX()
+            "b" to "s" -> newPosition.increaseY()
+            "b" to "w" -> newPosition.increaseX()
             "l" to "n" -> newD = "w"
             "l" to "e" -> newD = "n"
             "l" to "s" -> newD = "e"

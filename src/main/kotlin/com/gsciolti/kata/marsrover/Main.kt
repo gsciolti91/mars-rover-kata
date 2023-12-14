@@ -27,12 +27,10 @@ fun main(vararg args: String) {
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
-    var currentX = start.split(",")[0].toInt()
-    var currentY = start.split(",")[1].toInt()
+    val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
     var currentD = start.split(",")[2]
 
-    var newX = currentX
-    var newY = currentY
+    var newPosition = currentPosition.copy()
     var newD = currentD
 
     val commands = command.split(",")
@@ -44,20 +42,20 @@ fun main(vararg args: String) {
             "l" -> "Rover turned left"
             "r" -> "Rover turned right"
             else -> {
-                println("Invalid command '$cmd'. Current [$currentX,$currentY:$currentD]")
+                println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
                 break
             }
         }
 
         when (Pair(cmd, currentD)) {
-            "f" to "n" -> newY = currentY + 1
-            "f" to "e" -> newX = currentX + 1
-            "f" to "s" -> newY = currentY - 1
-            "f" to "w" -> newX = currentX - 1
-            "b" to "n" -> newY = currentY - 1
-            "b" to "e" -> newX = currentX - 1
-            "b" to "s" -> newY = currentY + 1
-            "b" to "w" -> newX = currentX + 1
+            "f" to "n" -> newPosition = currentPosition.increaseY()
+            "f" to "e" -> newPosition = currentPosition.increaseX()
+            "f" to "s" -> newPosition = currentPosition.decreaseY()
+            "f" to "w" -> newPosition = currentPosition.decreaseX()
+            "b" to "n" -> newPosition = currentPosition.decreaseY()
+            "b" to "e" -> newPosition = currentPosition.decreaseX()
+            "b" to "s" -> newPosition = currentPosition.increaseY()
+            "b" to "w" -> newPosition = currentPosition.increaseX()
             "l" to "n" -> newD = "w"
             "l" to "e" -> newD = "n"
             "l" to "s" -> newD = "e"
@@ -69,25 +67,25 @@ fun main(vararg args: String) {
         }
 
         if (map != null && mapType == "w") {
-            if (newX == map.first) newX = 0
-            if (newX == -1) newX = map.first - 1
-            if (newY == map.second) newY = 0
-            if (newY == -1) newY = map.second - 1
+            if (newPosition.x == map.first) newPosition.x = 0
+            if (newPosition.x == -1) newPosition.x = map.first - 1
+            if (newPosition.y == map.second) newPosition.y = 0
+            if (newPosition.y == -1) newPosition.y = map.second - 1
         }
 
         val msg: String
 
-        if (obstacles != null && obstacles.contains(newX to newY)) {
-            println("Obstacle encountered at [$newX,$newY]. Current [$currentX,$currentY:$currentD]")
+        if (obstacles != null && obstacles.contains(newPosition.x to newPosition.y)) {
+            println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
             break
-        } else if (map != null && (newX < 0 || newX >= map.first || newY < 0 || newY >= map.second)) {
-            println("Boundary encountered at [$currentX,$currentY]. Current [$currentX,$currentY:$currentD]")
+        } else if (map != null && (newPosition.x < 0 || newPosition.x >= map.first || newPosition.y < 0 || newPosition.y >= map.second)) {
+            println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
             break
         } else {
-            msg = "$dirmsg. Current [$newX,$newY:$newD]"
+            msg = "$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]"
 
-            currentX = newX
-            currentY = newY
+            currentPosition.x = newPosition.x
+            currentPosition.y = newPosition.y
             currentD = newD
         }
 

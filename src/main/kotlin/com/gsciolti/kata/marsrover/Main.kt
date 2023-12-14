@@ -2,9 +2,8 @@ package com.gsciolti.kata.marsrover
 
 fun main(vararg args: String) {
 
-    val start = args.filter { it.startsWith("-start") }.first()
+    val start = args.filter { it.startsWith("-start") }.first().split("=")[1]
     val command = args.filter { it.startsWith("-command") }.first().split("=")[1]
-    val commands = command.split(",")
     val obstacles: List<Pair<Int, Int>>? = args
         .filter { it.startsWith("-obstacles") }
         .getOrNull(0)
@@ -28,13 +27,15 @@ fun main(vararg args: String) {
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
-    var currentX = start.split("=")[1].split(",")[0].toInt()
-    var currentY = start.split("=")[1].split(",")[1].toInt()
-    var currentD = start.split("=")[1].split(",")[2]
+    var currentX = start.split(",")[0].toInt()
+    var currentY = start.split(",")[1].toInt()
+    var currentD = start.split(",")[2]
 
     var newX = currentX
     var newY = currentY
     var newD = currentD
+
+    val commands = command.split(",")
 
     for (cmd in commands) {
         val dirmsg = when (cmd) {

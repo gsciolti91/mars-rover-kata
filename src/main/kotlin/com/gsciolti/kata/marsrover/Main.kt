@@ -1,6 +1,7 @@
 package com.gsciolti.kata.marsrover
 
 import com.gsciolti.kata.marsrover.functional.Either
+import com.gsciolti.kata.marsrover.functional.flatMap
 import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
 
@@ -95,28 +96,23 @@ fun main(vararg args: String) {
         val move = Move(currentPosition, nextPosition)
         var error: Any? = null
 
-        realMap
-            .validate(move)
-            .tapLeft {
-                error = it
-                println("Boundary encountered at [${it.move.currentPosition.x},${it.move.currentPosition.y}]. Current [${it.move.currentPosition.x},${it.move.currentPosition.y}:$currentD]")
+        realMap.validate(move)
+            .flatMap { m -> realObstacles.validate(m) }
+            .tap {
+                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
+
+                currentPosition = nextPosition.copy()
+                currentD = newD
+            }
+            .tapLeft { e ->
+                error = e
+                when (e) {
+                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentD]")
+                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentD]")
+                }
             }
 
         if (error != null) break
-
-        realObstacles
-            .validate(move)
-            .tapLeft {
-                error = it
-                println("Obstacle encountered at [${it.move.nextPosition.x},${it.move.nextPosition.y}]. Current [${it.move.currentPosition.x},${it.move.currentPosition.y}:$currentD]")
-            }
-
-        if (error != null) break
-
-        println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
-
-        currentPosition = nextPosition.copy()
-        currentD = newD
     }
 }
 

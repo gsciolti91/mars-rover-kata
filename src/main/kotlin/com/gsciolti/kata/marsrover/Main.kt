@@ -20,26 +20,14 @@ fun main(vararg args: String) {
                     rawCoordinates[0].replace("[", "").toInt() to rawCoordinates[1].replace("]", "").toInt()
                 }
         }
-    var mapType = ""
 
-    args
-        .filter { it.startsWith("-map") }
-        .getOrNull(0)
-        ?.let {
-            val rawMapAndType = it.split("=")[1].split(",")
-            val rawMap = rawMapAndType[0].split("x")
-            mapType = rawMapAndType.getOrElse(1) { "" }
-
-            rawMap[0].toInt() to rawMap[1].toInt()
-        }
-
-    val realMap: Map = args
+    val map = args
         .filter { it.startsWith("-map") }
         .getOrNull(0)
         ?.let {
             val rawMapAndType = it.split("=")[1].split(",")
             val mapDimensions = rawMapAndType[0].split("x")
-            mapType = rawMapAndType.getOrElse(1) { "" }
+            val mapType = rawMapAndType.getOrElse(1) { "" }
 
             when (mapType) {
                 "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt())
@@ -91,12 +79,12 @@ fun main(vararg args: String) {
             "r" to "w" -> newD = "n"
         }
 
-        realMap.adjust(nextPosition)
+        map.adjust(nextPosition)
 
         val move = Move(currentPosition, nextPosition)
         var error: Any? = null
 
-        realMap.validate(move)
+        map.validate(move)
             .flatMap { m -> realObstacles.validate(m) }
             .tap {
                 println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")

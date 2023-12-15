@@ -73,17 +73,23 @@ fun main(vararg args: String) {
             if (newPosition.y == -1) newPosition.y = map.second - 1
         }
 
-        if (map != null && newPosition.isOutsideOf(map)) {
-            println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
-            break
-        } else if (obstacles != null && obstacles.contains(newPosition.x to newPosition.y)) {
-            println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
-            break
-        } else {
-            println("$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]")
+        when {
+            map != null && newPosition.isOutsideOf(map) -> {
+                println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+                break
+            }
 
-            currentPosition = newPosition.copy()
-            currentD = newD
+            obstacles != null && obstacles.contains(newPosition.x to newPosition.y) -> {
+                println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+                break
+            }
+
+            else -> {
+                println("$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]")
+
+                currentPosition = newPosition.copy()
+                currentD = newD
+            }
         }
     }
 }

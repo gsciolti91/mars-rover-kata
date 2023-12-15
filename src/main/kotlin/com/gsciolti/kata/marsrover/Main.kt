@@ -92,15 +92,15 @@ fun main(vararg args: String) {
 
         realMap.adjust(nextPosition)
 
-        val movement = Move(currentPosition, nextPosition)
+        val move = Move(currentPosition, nextPosition)
         var error: Any? = null
 
-        if (obstacles != null && obstacles.contains(nextPosition.x to nextPosition.y)) {
-            error = ObstacleEncounteredAt(nextPosition)
-        }
+        realObstacles
+            .validate(move)
+            .tapLeft { error = it }
 
         realMap
-            .validate(movement)
+            .validate(move)
             .tapLeft { error = it }
 
         when (error) {
@@ -124,11 +124,16 @@ fun main(vararg args: String) {
     }
 }
 
-class Obstacles(coordinates: List<Coordinates>) {
+class Obstacles(private val coordinates: List<Coordinates>) {
 
+    fun validate(move: Move) =
+        if (coordinates.contains(move.nextPosition))
+            ObstacleEncounteredAt(move.nextPosition).left()
+        else
+            move.right()
 }
 
-class Move(val currentPosition: Coordinates, val nextPosition: Coordinates)
+data class Move(val currentPosition: Coordinates, val nextPosition: Coordinates)
 
 class ObstacleEncounteredAt(coordinates: Coordinates)
 

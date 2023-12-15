@@ -1,5 +1,9 @@
 package com.gsciolti.kata.marsrover
 
+import com.gsciolti.kata.marsrover.Command.MoveBackward
+import com.gsciolti.kata.marsrover.Command.MoveForward
+import com.gsciolti.kata.marsrover.Command.TurnLeft
+import com.gsciolti.kata.marsrover.Command.TurnRight
 import com.gsciolti.kata.marsrover.Direction.East
 import com.gsciolti.kata.marsrover.Direction.North
 import com.gsciolti.kata.marsrover.Direction.South
@@ -50,35 +54,32 @@ fun main(vararg args: String) {
     val commands = command.split(",")
 
     for (cmd in commands) {
-        val dirmsg = when (cmd) {
-            "f" -> "Rover moved forward"
-            "b" -> "Rover moved backward"
-            "l" -> "Rover turned left"
-            "r" -> "Rover turned right"
-            else -> {
-                println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:${currentDirection.asString()}]")
-                break
-            }
+
+        val domainCommand = try {
+            cmd.toCommand()
+        } catch (e: Exception) {
+            println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:${currentDirection.asString()}]")
+            break
         }
 
         val (nextPosition, nextDirection) =
-            when (Pair(cmd, currentDirection)) {
-                "f" to North -> map.adjust(currentPosition.increaseY()) to currentDirection
-                "f" to East -> map.adjust(currentPosition.increaseX()) to currentDirection
-                "f" to South -> map.adjust(currentPosition.decreaseY()) to currentDirection
-                "f" to West -> map.adjust(currentPosition.decreaseX()) to currentDirection
-                "b" to North -> map.adjust(currentPosition.decreaseY()) to currentDirection
-                "b" to East -> map.adjust(currentPosition.decreaseX()) to currentDirection
-                "b" to South -> map.adjust(currentPosition.increaseY()) to currentDirection
-                "b" to West -> map.adjust(currentPosition.increaseX()) to currentDirection
-                "l" to North -> currentPosition to currentDirection.left()
-                "l" to East -> currentPosition to currentDirection.left()
-                "l" to South -> currentPosition to currentDirection.left()
-                "l" to West -> currentPosition to currentDirection.left()
-                "r" to North -> currentPosition to currentDirection.right()
-                "r" to East -> currentPosition to currentDirection.right()
-                "r" to South -> currentPosition to currentDirection.right()
-                "r" to West -> currentPosition to currentDirection.right()
+            when (Pair(domainCommand, currentDirection)) {
+                MoveForward to North -> map.adjust(currentPosition.increaseY()) to currentDirection
+                MoveForward to East -> map.adjust(currentPosition.increaseX()) to currentDirection
+                MoveForward to South -> map.adjust(currentPosition.decreaseY()) to currentDirection
+                MoveForward to West -> map.adjust(currentPosition.decreaseX()) to currentDirection
+                MoveBackward to North -> map.adjust(currentPosition.decreaseY()) to currentDirection
+                MoveBackward to East -> map.adjust(currentPosition.decreaseX()) to currentDirection
+                MoveBackward to South -> map.adjust(currentPosition.increaseY()) to currentDirection
+                MoveBackward to West -> map.adjust(currentPosition.increaseX()) to currentDirection
+                TurnLeft to North -> currentPosition to currentDirection.left()
+                TurnLeft to East -> currentPosition to currentDirection.left()
+                TurnLeft to South -> currentPosition to currentDirection.left()
+                TurnLeft to West -> currentPosition to currentDirection.left()
+                TurnRight to North -> currentPosition to currentDirection.right()
+                TurnRight to East -> currentPosition to currentDirection.right()
+                TurnRight to South -> currentPosition to currentDirection.right()
+                TurnRight to West -> currentPosition to currentDirection.right()
                 else -> TODO("Command;direction pair not handled")
             }
 
@@ -92,6 +93,13 @@ fun main(vararg args: String) {
                 currentDirection = nextDirection
             }
             .tap {
+                val dirmsg = when (domainCommand) {
+                    is MoveForward -> "Rover moved forward"
+                    is MoveBackward -> "Rover moved backward"
+                    is TurnLeft -> "Rover turned left"
+                    is TurnRight -> "Rover turned right"
+                }
+
                 println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:${nextDirection.asString()}]")
             }
             .tapLeft { e ->
@@ -104,6 +112,22 @@ fun main(vararg args: String) {
 
         if (error != null) break
     }
+}
+
+private fun String.toCommand() =
+    when (this) {
+        "f" -> MoveForward
+        "b" -> MoveBackward
+        "l" -> TurnLeft
+        "r" -> TurnRight
+        else -> throw IllegalArgumentException("Command not recognized")
+    }
+
+sealed class Command {
+    object MoveForward : Command()
+    object MoveBackward : Command()
+    object TurnLeft : Command()
+    object TurnRight : Command()
 }
 
 private fun Direction.asString() =

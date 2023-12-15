@@ -141,9 +141,11 @@ class BoundaryEncounteredAt(val coordinates: Coordinates)
 
 interface Map {
 
-    fun adjust(coordinates: Coordinates) = coordinates
+    fun adjust(coordinates: Coordinates): Coordinates =
+        coordinates
 
-    fun validate(move: Move): Either<BoundaryEncounteredAt, Move> = move.right()
+    fun validate(move: Move): Either<BoundaryEncounteredAt, Move> =
+        move.right()
 }
 
 

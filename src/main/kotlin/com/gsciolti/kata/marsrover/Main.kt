@@ -1,5 +1,9 @@
 package com.gsciolti.kata.marsrover
 
+import com.gsciolti.kata.marsrover.functional.Either
+import com.gsciolti.kata.marsrover.functional.left
+import com.gsciolti.kata.marsrover.functional.right
+
 fun main(vararg args: String) {
 
     val start = args.filter { it.startsWith("-start") }.first().split("=")[1]
@@ -16,7 +20,8 @@ fun main(vararg args: String) {
                 }
         }
     var mapType = ""
-    val map: Pair<Int, Int>? = args
+
+    args
         .filter { it.startsWith("-map") }
         .getOrNull(0)
         ?.let {
@@ -27,10 +32,29 @@ fun main(vararg args: String) {
             rawMap[0].toInt() to rawMap[1].toInt()
         }
 
+    val realMap: Map = args
+        .filter { it.startsWith("-map") }
+        .getOrNull(0)
+        ?.let {
+            val rawMapAndType = it.split("=")[1].split(",")
+            val mapDimensions = rawMapAndType[0].split("x")
+            mapType = rawMapAndType.getOrElse(1) { "" }
+
+            when (mapType) {
+                "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt())
+                "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt())
+                else -> TODO("Unrecognized map type")
+            }
+        } ?: OpenWorld
+
+    val realObstacles = Obstacles(
+        obstacles?.let { it.map { Coordinates(it.first, it.second) } } ?: emptyList()
+    )
+
     var currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
     var currentD = start.split(",")[2]
 
-    val newPosition = currentPosition.copy()
+    val nextPosition = currentPosition.copy()
     var newD = currentD
 
     val commands = command.split(",")
@@ -48,14 +72,14 @@ fun main(vararg args: String) {
         }
 
         when (Pair(cmd, currentD)) {
-            "f" to "n" -> newPosition.increaseY()
-            "f" to "e" -> newPosition.increaseX()
-            "f" to "s" -> newPosition.decreaseY()
-            "f" to "w" -> newPosition.decreaseX()
-            "b" to "n" -> newPosition.decreaseY()
-            "b" to "e" -> newPosition.decreaseX()
-            "b" to "s" -> newPosition.increaseY()
-            "b" to "w" -> newPosition.increaseX()
+            "f" to "n" -> nextPosition.increaseY()
+            "f" to "e" -> nextPosition.increaseX()
+            "f" to "s" -> nextPosition.decreaseY()
+            "f" to "w" -> nextPosition.decreaseX()
+            "b" to "n" -> nextPosition.decreaseY()
+            "b" to "e" -> nextPosition.decreaseX()
+            "b" to "s" -> nextPosition.increaseY()
+            "b" to "w" -> nextPosition.increaseX()
             "l" to "n" -> newD = "w"
             "l" to "e" -> newD = "n"
             "l" to "s" -> newD = "e"
@@ -66,30 +90,81 @@ fun main(vararg args: String) {
             "r" to "w" -> newD = "n"
         }
 
-        if (map != null && mapType == "w") {
-            if (newPosition.x == map.first) newPosition.x = 0
-            if (newPosition.x == -1) newPosition.x = map.first - 1
-            if (newPosition.y == map.second) newPosition.y = 0
-            if (newPosition.y == -1) newPosition.y = map.second - 1
+        realMap.adjust(nextPosition)
+
+        val movement = Move(currentPosition, nextPosition)
+        var error: Any? = null
+
+        if (obstacles != null && obstacles.contains(nextPosition.x to nextPosition.y)) {
+            error = ObstacleEncounteredAt(nextPosition)
         }
 
-        when {
-            map != null && newPosition.isOutsideOf(map) -> {
+        realMap
+            .validate(movement)
+            .tapLeft { error = it }
+
+        when (error) {
+            null -> {
+                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
+
+                currentPosition = nextPosition.copy()
+                currentD = newD
+            }
+
+            is BoundaryEncounteredAt -> {
                 println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
                 break
             }
 
-            obstacles != null && obstacles.contains(newPosition.x to newPosition.y) -> {
-                println("Obstacle encountered at [${newPosition.x},${newPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+            is ObstacleEncounteredAt -> {
+                println("Obstacle encountered at [${nextPosition.x},${nextPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
                 break
-            }
-
-            else -> {
-                println("$dirmsg. Current [${newPosition.x},${newPosition.y}:$newD]")
-
-                currentPosition = newPosition.copy()
-                currentD = newD
             }
         }
     }
+}
+
+class Obstacles(coordinates: List<Coordinates>) {
+
+}
+
+class Move(val currentPosition: Coordinates, val nextPosition: Coordinates)
+
+class ObstacleEncounteredAt(coordinates: Coordinates)
+
+class BoundaryEncounteredAt(val coordinates: Coordinates)
+
+interface Map {
+
+    fun adjust(coordinates: Coordinates) = coordinates
+
+    fun validate(move: Move): Either<BoundaryEncounteredAt, Move> = move.right()
+}
+
+
+class BoundedMap(private val width: Int, private val height: Int) : Map {
+
+    override fun validate(move: Move) =
+        if (move.nextPosition.x < 0 || move.nextPosition.x >= width ||
+            move.nextPosition.y < 0 || move.nextPosition.y >= height
+        )
+            BoundaryEncounteredAt(move.currentPosition).left()
+        else
+            move.right()
+}
+
+
+class WrappingMap(val width: Int, val height: Int) : Map {
+    override fun adjust(coordinates: Coordinates): Coordinates {
+        if (coordinates.x == width) coordinates.x = 0
+        if (coordinates.x == -1) coordinates.x = width - 1
+        if (coordinates.y == height) coordinates.y = 0
+        if (coordinates.y == -1) coordinates.y = height - 1
+
+        return coordinates
+    }
+}
+
+object OpenWorld : Map {
+
 }

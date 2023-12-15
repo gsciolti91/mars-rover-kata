@@ -86,11 +86,12 @@ fun main(vararg args: String) {
 
         map.validate(move)
             .flatMap { m -> realObstacles.validate(m) }
-            .tap {
-                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
-
+            .map {
                 currentPosition = nextPosition.copy()
                 currentD = newD
+            }
+            .tap {
+                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
             }
             .tapLeft { e ->
                 error = e

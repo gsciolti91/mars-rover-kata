@@ -41,10 +41,7 @@ fun main(vararg args: String) {
     )
 
     var currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
-    var currentD = start.split(",")[2]
-
-    val nextPosition = currentPosition.copy()
-    var newD = currentD
+    var currentDirection = start.split(",")[2]
 
     val commands = command.split(",")
 
@@ -55,31 +52,31 @@ fun main(vararg args: String) {
             "l" -> "Rover turned left"
             "r" -> "Rover turned right"
             else -> {
-                println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+                println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:$currentDirection]")
                 break
             }
         }
 
-        when (Pair(cmd, currentD)) {
-            "f" to "n" -> nextPosition.increaseY()
-            "f" to "e" -> nextPosition.increaseX()
-            "f" to "s" -> nextPosition.decreaseY()
-            "f" to "w" -> nextPosition.decreaseX()
-            "b" to "n" -> nextPosition.decreaseY()
-            "b" to "e" -> nextPosition.decreaseX()
-            "b" to "s" -> nextPosition.increaseY()
-            "b" to "w" -> nextPosition.increaseX()
-            "l" to "n" -> newD = "w"
-            "l" to "e" -> newD = "n"
-            "l" to "s" -> newD = "e"
-            "l" to "w" -> newD = "s"
-            "r" to "n" -> newD = "e"
-            "r" to "e" -> newD = "s"
-            "r" to "s" -> newD = "w"
-            "r" to "w" -> newD = "n"
-        }
-
-        map.adjust(nextPosition)
+        val (nextPosition, nextDirection) =
+            when (Pair(cmd, currentDirection)) {
+                "f" to "n" -> map.adjust(currentPosition.increaseY()) to currentDirection
+                "f" to "e" -> map.adjust(currentPosition.increaseX()) to currentDirection
+                "f" to "s" -> map.adjust(currentPosition.decreaseY()) to currentDirection
+                "f" to "w" -> map.adjust(currentPosition.decreaseX()) to currentDirection
+                "b" to "n" -> map.adjust(currentPosition.decreaseY()) to currentDirection
+                "b" to "e" -> map.adjust(currentPosition.decreaseX()) to currentDirection
+                "b" to "s" -> map.adjust(currentPosition.increaseY()) to currentDirection
+                "b" to "w" -> map.adjust(currentPosition.increaseX()) to currentDirection
+                "l" to "n" -> currentPosition to "w"
+                "l" to "e" -> currentPosition to "n"
+                "l" to "s" -> currentPosition to "e"
+                "l" to "w" -> currentPosition to "s"
+                "r" to "n" -> currentPosition to "e"
+                "r" to "e" -> currentPosition to "s"
+                "r" to "s" -> currentPosition to "w"
+                "r" to "w" -> currentPosition to "n"
+                else -> TODO("Command;direction pair not handled")
+            }
 
         val move = Move(currentPosition, nextPosition)
         var error: Any? = null
@@ -88,16 +85,16 @@ fun main(vararg args: String) {
             .flatMap { m -> realObstacles.validate(m) }
             .map {
                 currentPosition = nextPosition.copy()
-                currentD = newD
+                currentDirection = nextDirection
             }
             .tap {
-                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
+                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$nextDirection]")
             }
             .tapLeft { e ->
                 error = e
                 when (e) {
-                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentD]")
-                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentD]")
+                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentDirection]")
+                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentDirection]")
                 }
             }
 
@@ -143,14 +140,15 @@ class BoundedMap(private val width: Int, private val height: Int) : Map {
 
 
 class WrappingMap(val width: Int, val height: Int) : Map {
-    override fun adjust(coordinates: Coordinates): Coordinates {
-        if (coordinates.x == width) coordinates.x = 0
-        if (coordinates.x == -1) coordinates.x = width - 1
-        if (coordinates.y == height) coordinates.y = 0
-        if (coordinates.y == -1) coordinates.y = height - 1
 
-        return coordinates
-    }
+    override fun adjust(coordinates: Coordinates) =
+        when {
+            coordinates.x == width -> coordinates.copy(x = 0)
+            coordinates.x == -1 -> coordinates.copy(x = width - 1)
+            coordinates.y == height -> coordinates.copy(y = 0)
+            coordinates.y == -1 -> coordinates.copy(y = height - 1)
+            else -> coordinates
+        }
 }
 
 object OpenWorld : Map {

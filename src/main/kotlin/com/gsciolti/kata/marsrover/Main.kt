@@ -111,12 +111,12 @@ fun main(vararg args: String) {
                 currentD = newD
             }
 
-            is BoundaryEncounteredAt -> {
+            is BoundaryEncountered -> {
                 println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
                 break
             }
 
-            is ObstacleEncounteredAt -> {
+            is ObstacleEncountered -> {
                 println("Obstacle encountered at [${nextPosition.x},${nextPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
                 break
             }
@@ -128,23 +128,23 @@ class Obstacles(private val coordinates: List<Coordinates>) {
 
     fun validate(move: Move) =
         if (coordinates.contains(move.nextPosition))
-            ObstacleEncounteredAt(move.nextPosition).left()
+            ObstacleEncountered(move).left()
         else
             move.right()
 }
 
 data class Move(val currentPosition: Coordinates, val nextPosition: Coordinates)
 
-class ObstacleEncounteredAt(coordinates: Coordinates)
+class ObstacleEncountered(val move: Move)
 
-class BoundaryEncounteredAt(val coordinates: Coordinates)
+class BoundaryEncountered(val coordinates: Move)
 
 interface Map {
 
     fun adjust(coordinates: Coordinates): Coordinates =
         coordinates
 
-    fun validate(move: Move): Either<BoundaryEncounteredAt, Move> =
+    fun validate(move: Move): Either<BoundaryEncountered, Move> =
         move.right()
 }
 
@@ -155,7 +155,7 @@ class BoundedMap(private val width: Int, private val height: Int) : Map {
         if (move.nextPosition.x < 0 || move.nextPosition.x >= width ||
             move.nextPosition.y < 0 || move.nextPosition.y >= height
         )
-            BoundaryEncounteredAt(move.currentPosition).left()
+            BoundaryEncountered(move).left()
         else
             move.right()
 }

@@ -1,5 +1,9 @@
 package com.gsciolti.kata.marsrover
 
+import com.gsciolti.kata.marsrover.Direction.East
+import com.gsciolti.kata.marsrover.Direction.North
+import com.gsciolti.kata.marsrover.Direction.South
+import com.gsciolti.kata.marsrover.Direction.West
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.flatMap
 import com.gsciolti.kata.marsrover.functional.left
@@ -41,7 +45,7 @@ fun main(vararg args: String) {
     )
 
     var currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
-    var currentDirection = start.split(",")[2]
+    var currentDirection = start.split(",")[2].toDirection()
 
     val commands = command.split(",")
 
@@ -52,29 +56,29 @@ fun main(vararg args: String) {
             "l" -> "Rover turned left"
             "r" -> "Rover turned right"
             else -> {
-                println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:$currentDirection]")
+                println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:${currentDirection.asString()}]")
                 break
             }
         }
 
         val (nextPosition, nextDirection) =
             when (Pair(cmd, currentDirection)) {
-                "f" to "n" -> map.adjust(currentPosition.increaseY()) to currentDirection
-                "f" to "e" -> map.adjust(currentPosition.increaseX()) to currentDirection
-                "f" to "s" -> map.adjust(currentPosition.decreaseY()) to currentDirection
-                "f" to "w" -> map.adjust(currentPosition.decreaseX()) to currentDirection
-                "b" to "n" -> map.adjust(currentPosition.decreaseY()) to currentDirection
-                "b" to "e" -> map.adjust(currentPosition.decreaseX()) to currentDirection
-                "b" to "s" -> map.adjust(currentPosition.increaseY()) to currentDirection
-                "b" to "w" -> map.adjust(currentPosition.increaseX()) to currentDirection
-                "l" to "n" -> currentPosition to "w"
-                "l" to "e" -> currentPosition to "n"
-                "l" to "s" -> currentPosition to "e"
-                "l" to "w" -> currentPosition to "s"
-                "r" to "n" -> currentPosition to "e"
-                "r" to "e" -> currentPosition to "s"
-                "r" to "s" -> currentPosition to "w"
-                "r" to "w" -> currentPosition to "n"
+                "f" to North -> map.adjust(currentPosition.increaseY()) to currentDirection
+                "f" to East -> map.adjust(currentPosition.increaseX()) to currentDirection
+                "f" to South -> map.adjust(currentPosition.decreaseY()) to currentDirection
+                "f" to West -> map.adjust(currentPosition.decreaseX()) to currentDirection
+                "b" to North -> map.adjust(currentPosition.decreaseY()) to currentDirection
+                "b" to East -> map.adjust(currentPosition.decreaseX()) to currentDirection
+                "b" to South -> map.adjust(currentPosition.increaseY()) to currentDirection
+                "b" to West -> map.adjust(currentPosition.increaseX()) to currentDirection
+                "l" to North -> currentPosition to currentDirection.left()
+                "l" to East -> currentPosition to currentDirection.left()
+                "l" to South -> currentPosition to currentDirection.left()
+                "l" to West -> currentPosition to currentDirection.left()
+                "r" to North -> currentPosition to currentDirection.right()
+                "r" to East -> currentPosition to currentDirection.right()
+                "r" to South -> currentPosition to currentDirection.right()
+                "r" to West -> currentPosition to currentDirection.right()
                 else -> TODO("Command;direction pair not handled")
             }
 
@@ -88,19 +92,36 @@ fun main(vararg args: String) {
                 currentDirection = nextDirection
             }
             .tap {
-                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$nextDirection]")
+                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:${nextDirection.asString()}]")
             }
             .tapLeft { e ->
                 error = e
                 when (e) {
-                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentDirection]")
-                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:$currentDirection]")
+                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${currentDirection.asString()}]")
+                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${currentDirection.asString()}]")
                 }
             }
 
         if (error != null) break
     }
 }
+
+private fun Direction.asString() =
+    when (this) {
+        North -> "n"
+        East -> "e"
+        South -> "s"
+        West -> "w"
+    }
+
+private fun String.toDirection() =
+    when (this) {
+        "n" -> North
+        "e" -> East
+        "s" -> South
+        "w" -> West
+        else -> TODO("Direction not recognized")
+    }
 
 class Obstacles(private val coordinates: List<Coordinates>) {
 
@@ -151,6 +172,12 @@ class WrappingMap(val width: Int, val height: Int) : Map {
         }
 }
 
-object OpenWorld : Map {
+object OpenWorld : Map
 
+sealed class Direction(val left: () -> Direction, val right: () -> Direction) {
+
+    object North : Direction({ West }, { East })
+    object East : Direction({ North }, { South })
+    object South : Direction({ East }, { West })
+    object West : Direction({ South }, { North })
 }

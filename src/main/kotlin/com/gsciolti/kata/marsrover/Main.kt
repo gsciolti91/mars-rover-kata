@@ -95,32 +95,28 @@ fun main(vararg args: String) {
         val move = Move(currentPosition, nextPosition)
         var error: Any? = null
 
-        realObstacles
-            .validate(move)
-            .tapLeft { error = it }
-
         realMap
             .validate(move)
-            .tapLeft { error = it }
-
-        when (error) {
-            null -> {
-                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
-
-                currentPosition = nextPosition.copy()
-                currentD = newD
-            }
-
-            is BoundaryEncountered -> {
+            .tapLeft {
+                error = it
                 println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
-                break
             }
 
-            is ObstacleEncountered -> {
+        if (error != null) break
+
+        realObstacles
+            .validate(move)
+            .tapLeft {
+                error = it
                 println("Obstacle encountered at [${nextPosition.x},${nextPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
-                break
             }
-        }
+
+        if (error != null) break
+
+        println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:$newD]")
+
+        currentPosition = nextPosition.copy()
+        currentD = newD
     }
 }
 

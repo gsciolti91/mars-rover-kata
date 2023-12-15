@@ -99,7 +99,7 @@ fun main(vararg args: String) {
             .validate(move)
             .tapLeft {
                 error = it
-                println("Boundary encountered at [${currentPosition.x},${currentPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+                println("Boundary encountered at [${it.move.currentPosition.x},${it.move.currentPosition.y}]. Current [${it.move.currentPosition.x},${it.move.currentPosition.y}:$currentD]")
             }
 
         if (error != null) break
@@ -108,7 +108,7 @@ fun main(vararg args: String) {
             .validate(move)
             .tapLeft {
                 error = it
-                println("Obstacle encountered at [${nextPosition.x},${nextPosition.y}]. Current [${currentPosition.x},${currentPosition.y}:$currentD]")
+                println("Obstacle encountered at [${it.move.nextPosition.x},${it.move.nextPosition.y}]. Current [${it.move.currentPosition.x},${it.move.currentPosition.y}:$currentD]")
             }
 
         if (error != null) break
@@ -133,7 +133,7 @@ data class Move(val currentPosition: Coordinates, val nextPosition: Coordinates)
 
 class ObstacleEncountered(val move: Move)
 
-class BoundaryEncountered(val coordinates: Move)
+class BoundaryEncountered(val move: Move)
 
 interface Map {
 

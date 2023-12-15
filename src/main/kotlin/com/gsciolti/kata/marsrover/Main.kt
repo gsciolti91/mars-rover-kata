@@ -48,8 +48,10 @@ fun main(vararg args: String) {
         obstacles?.let { it.map { Coordinates(it.first, it.second) } } ?: emptyList()
     )
 
-    var currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
-    var currentDirection = start.split(",")[2].toDirection()
+    val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
+    val currentDirection = start.split(",")[2].toDirection()
+
+    var rover = Rover(currentPosition, currentDirection)
 
     val commands = command.split(",")
 
@@ -58,39 +60,38 @@ fun main(vararg args: String) {
         val domainCommand = try {
             cmd.toCommand()
         } catch (e: Exception) {
-            println("Invalid command '$cmd'. Current [${currentPosition.x},${currentPosition.y}:${currentDirection.asString()}]")
+            println("Invalid command '$cmd'. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
             break
         }
 
-        val (nextPosition, nextDirection) =
-            when (Pair(domainCommand, currentDirection)) {
-                MoveForward to North -> map.adjust(currentPosition.increaseY()) to currentDirection
-                MoveForward to East -> map.adjust(currentPosition.increaseX()) to currentDirection
-                MoveForward to South -> map.adjust(currentPosition.decreaseY()) to currentDirection
-                MoveForward to West -> map.adjust(currentPosition.decreaseX()) to currentDirection
-                MoveBackward to North -> map.adjust(currentPosition.decreaseY()) to currentDirection
-                MoveBackward to East -> map.adjust(currentPosition.decreaseX()) to currentDirection
-                MoveBackward to South -> map.adjust(currentPosition.increaseY()) to currentDirection
-                MoveBackward to West -> map.adjust(currentPosition.increaseX()) to currentDirection
-                TurnLeft to North -> currentPosition to currentDirection.left()
-                TurnLeft to East -> currentPosition to currentDirection.left()
-                TurnLeft to South -> currentPosition to currentDirection.left()
-                TurnLeft to West -> currentPosition to currentDirection.left()
-                TurnRight to North -> currentPosition to currentDirection.right()
-                TurnRight to East -> currentPosition to currentDirection.right()
-                TurnRight to South -> currentPosition to currentDirection.right()
-                TurnRight to West -> currentPosition to currentDirection.right()
+        val nextRover =
+            when (Pair(domainCommand, rover.facing)) {
+                MoveForward to North -> rover.copy(position = map.adjust(rover.position.increaseY()))
+                MoveForward to East -> rover.copy(position = map.adjust(rover.position.increaseX()))
+                MoveForward to South -> rover.copy(position = map.adjust(rover.position.decreaseY()))
+                MoveForward to West -> rover.copy(position = map.adjust(rover.position.decreaseX()))
+                MoveBackward to North -> rover.copy(position = map.adjust(rover.position.decreaseY()))
+                MoveBackward to East -> rover.copy(position = map.adjust(rover.position.decreaseX()))
+                MoveBackward to South -> rover.copy(position = map.adjust(rover.position.increaseY()))
+                MoveBackward to West -> rover.copy(position = map.adjust(rover.position.increaseX()))
+                TurnLeft to North -> rover.copy(facing = rover.facing.left())
+                TurnLeft to East -> rover.copy(facing = rover.facing.left())
+                TurnLeft to South -> rover.copy(facing = rover.facing.left())
+                TurnLeft to West -> rover.copy(facing = rover.facing.left())
+                TurnRight to North -> rover.copy(facing = rover.facing.right())
+                TurnRight to East -> rover.copy(facing = rover.facing.right())
+                TurnRight to South -> rover.copy(facing = rover.facing.right())
+                TurnRight to West -> rover.copy(facing = rover.facing.right())
                 else -> TODO("Command;direction pair not handled")
             }
 
-        val move = Move(currentPosition, nextPosition)
+        val move = Move(rover.position, nextRover.position)
         var error: Any? = null
 
         map.validate(move)
             .flatMap { m -> realObstacles.validate(m) }
             .map {
-                currentPosition = nextPosition.copy()
-                currentDirection = nextDirection
+                rover = nextRover.copy()
             }
             .tap {
                 val dirmsg = when (domainCommand) {
@@ -100,19 +101,21 @@ fun main(vararg args: String) {
                     is TurnRight -> "Rover turned right"
                 }
 
-                println("$dirmsg. Current [${nextPosition.x},${nextPosition.y}:${nextDirection.asString()}]")
+                println("$dirmsg. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
             }
             .tapLeft { e ->
                 error = e
                 when (e) {
-                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${currentDirection.asString()}]")
-                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${currentDirection.asString()}]")
+                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${rover.facing.asString()}]")
+                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${rover.facing.asString()}]")
                 }
             }
 
         if (error != null) break
     }
 }
+
+data class Rover(val position: Coordinates, val facing: Direction)
 
 private fun String.toCommand() =
     when (this) {

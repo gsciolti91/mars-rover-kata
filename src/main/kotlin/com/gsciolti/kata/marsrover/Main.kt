@@ -60,18 +60,13 @@ fun main(vararg args: String) {
             break
         }
 
-        // todo create move here with position not adjusted, then adjust and validate in the map
-        var nextRover = domainCommand.apply(rover)
-
-        nextRover = nextRover.copy(position = map.adjust(nextRover.position))
-
-        val move = Move(rover.position, nextRover.position)
+        val move = domainCommand.apply(rover)
 
         var error: Any? = null
 
         map.validate(move)
             .map {
-                rover = nextRover.copy()
+                rover = it
             }
             .tap {
                 val dirmsg = when (domainCommand) {
@@ -87,8 +82,8 @@ fun main(vararg args: String) {
             .tapLeft { e ->
                 error = e
                 when (e) {
-                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentPosition.x},${e.move.currentPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${rover.facing.asString()}]")
-                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextPosition.x},${e.move.nextPosition.y}]. Current [${e.move.currentPosition.x},${e.move.currentPosition.y}:${rover.facing.asString()}]")
+                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
+                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
                 }
             }
 
@@ -108,37 +103,37 @@ private fun String.toCommand() =
     }
 
 interface Command {
-    fun apply(rover: Rover): Rover
+    fun apply(rover: Rover): Move
 }
 
 object MoveForward : Command {
     override fun apply(rover: Rover) =
         when (rover.facing) {
-            North -> rover.copy(position = rover.position.increaseY())
-            East -> rover.copy(position = rover.position.increaseX())
-            South -> rover.copy(position = rover.position.decreaseY())
-            West -> rover.copy(position = rover.position.decreaseX())
+            North -> Move(rover, rover.copy(position = rover.position.increaseY()))
+            East -> Move(rover, rover.copy(position = rover.position.increaseX()))
+            South -> Move(rover, rover.copy(position = rover.position.decreaseY()))
+            West -> Move(rover, rover.copy(position = rover.position.decreaseX()))
         }
 }
 
 object MoveBackward : Command {
     override fun apply(rover: Rover) =
         when (rover.facing) {
-            North -> rover.copy(position = rover.position.decreaseY())
-            East -> rover.copy(position = rover.position.decreaseX())
-            South -> rover.copy(position = rover.position.increaseY())
-            West -> rover.copy(position = rover.position.increaseX())
+            North -> Move(rover, rover.copy(position = rover.position.decreaseY()))
+            East -> Move(rover, rover.copy(position = rover.position.decreaseX()))
+            South -> Move(rover, rover.copy(position = rover.position.increaseY()))
+            West -> Move(rover, rover.copy(position = rover.position.increaseX()))
         }
 }
 
 object TurnLeft : Command {
     override fun apply(rover: Rover) =
-        rover.copy(facing = rover.facing.left())
+        Move(rover, rover.copy(facing = rover.facing.left()))
 }
 
 object TurnRight : Command {
     override fun apply(rover: Rover) =
-        rover.copy(facing = rover.facing.right())
+        Move(rover, rover.copy(facing = rover.facing.right()))
 }
 
 private fun Direction.asString() =
@@ -161,27 +156,23 @@ private fun String.toDirection() =
 class Obstacles(private val coordinates: List<Coordinates>) {
 
     fun validate(move: Move) =
-        if (coordinates.contains(move.nextPosition))
+        if (coordinates.contains(move.nextRover.position))
             ObstacleEncountered(move).left()
         else
             move.right()
 }
 
-data class Move(val currentPosition: Coordinates, val nextPosition: Coordinates)
+data class Move(val currentRover: Rover, val nextRover: Rover)
 
 class ObstacleEncountered(val move: Move)
 
 class BoundaryEncountered(val move: Move)
 
 // todo obstacles, width height as plugins
-sealed class Map(private val obstacles: Obstacles) {
-
-    open fun adjust(coordinates: Coordinates): Coordinates =
-        coordinates
+sealed class Map(protected val obstacles: Obstacles) {
 
     // todo change any to err
-    open fun validate(move: Move): Either<Any, Move> =
-        obstacles.validate(move)
+    abstract fun validate(move: Move): Either<Any, Rover>
 }
 
 
@@ -189,11 +180,13 @@ class BoundedMap(private val width: Int, private val height: Int, obstacles: Obs
 
     override fun validate(move: Move) =
         validateAgainstBoundaries(move)
-            .flatMap { super.validate(move) }
+            .flatMap { obstacles.validate(move) }
+            .map { it.nextRover }
 
     private fun validateAgainstBoundaries(move: Move) =
-        if (move.nextPosition.x < 0 || move.nextPosition.x >= width ||
-            move.nextPosition.y < 0 || move.nextPosition.y >= height
+        // todo between
+        if (move.nextRover.position.x < 0 || move.nextRover.position.x >= width ||
+            move.nextRover.position.y < 0 || move.nextRover.position.y >= height
         )
             BoundaryEncountered(move).left()
         else
@@ -203,7 +196,15 @@ class BoundedMap(private val width: Int, private val height: Int, obstacles: Obs
 
 class WrappingMap(private val width: Int, private val height: Int, obstacles: Obstacles) : Map(obstacles) {
 
-    override fun adjust(coordinates: Coordinates) =
+    override fun validate(move: Move): Either<Any, Rover> {
+
+        val adjustedMove = move.copy(nextRover = move.nextRover.copy(position = adjust(move.nextRover.position)))
+
+        return obstacles.validate(adjustedMove)
+            .map { it.nextRover }
+    }
+
+    private fun adjust(coordinates: Coordinates) =
         when {
             coordinates.x == width -> coordinates.copy(x = 0)
             coordinates.x == -1 -> coordinates.copy(x = width - 1)
@@ -213,7 +214,11 @@ class WrappingMap(private val width: Int, private val height: Int, obstacles: Ob
         }
 }
 
-class OpenMap(obstacles: Obstacles) : Map(obstacles)
+class OpenMap(obstacles: Obstacles) : Map(obstacles) {
+    override fun validate(move: Move): Either<Any, Rover> {
+        return obstacles.validate(move).map { it.nextRover }
+    }
+}
 
 sealed class Direction(val left: () -> Direction, val right: () -> Direction) {
 

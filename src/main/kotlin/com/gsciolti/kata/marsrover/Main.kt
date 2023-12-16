@@ -1,9 +1,5 @@
 package com.gsciolti.kata.marsrover
 
-import com.gsciolti.kata.marsrover.Command.MoveBackward
-import com.gsciolti.kata.marsrover.Command.MoveForward
-import com.gsciolti.kata.marsrover.Command.TurnLeft
-import com.gsciolti.kata.marsrover.Command.TurnRight
 import com.gsciolti.kata.marsrover.Direction.East
 import com.gsciolti.kata.marsrover.Direction.North
 import com.gsciolti.kata.marsrover.Direction.South
@@ -74,15 +70,7 @@ fun main(vararg args: String) {
                 MoveBackward to East -> rover.copy(position = rover.position.decreaseX())
                 MoveBackward to South -> rover.copy(position = rover.position.increaseY())
                 MoveBackward to West -> rover.copy(position = rover.position.increaseX())
-                TurnLeft to North -> rover.copy(facing = rover.facing.left())
-                TurnLeft to East -> rover.copy(facing = rover.facing.left())
-                TurnLeft to South -> rover.copy(facing = rover.facing.left())
-                TurnLeft to West -> rover.copy(facing = rover.facing.left())
-                TurnRight to North -> rover.copy(facing = rover.facing.right())
-                TurnRight to East -> rover.copy(facing = rover.facing.right())
-                TurnRight to South -> rover.copy(facing = rover.facing.right())
-                TurnRight to West -> rover.copy(facing = rover.facing.right())
-                else -> TODO("Command;direction pair not handled")
+                else -> domainCommand.apply(rover)
             }
 
         nextRover = nextRover.copy(position = map.adjust(nextRover.position))
@@ -100,6 +88,7 @@ fun main(vararg args: String) {
                     is MoveBackward -> "Rover moved backward"
                     is TurnLeft -> "Rover turned left"
                     is TurnRight -> "Rover turned right"
+                    else -> TODO("Command not recognized")
                 }
 
                 println("$dirmsg. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
@@ -127,11 +116,23 @@ private fun String.toCommand() =
         else -> throw IllegalArgumentException("Command not recognized")
     }
 
-sealed class Command {
-    object MoveForward : Command()
-    object MoveBackward : Command()
-    object TurnLeft : Command()
-    object TurnRight : Command()
+interface Command {
+
+    fun apply(rover: Rover): Rover = TODO()
+
+}
+
+object MoveForward : Command
+object MoveBackward : Command
+
+object TurnLeft : Command {
+    override fun apply(rover: Rover) =
+        rover.copy(facing = rover.facing.left())
+}
+
+object TurnRight : Command {
+    override fun apply(rover: Rover) =
+        rover.copy(facing = rover.facing.right())
 }
 
 private fun Direction.asString() =

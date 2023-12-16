@@ -8,15 +8,18 @@ import com.gsciolti.kata.marsrover.domain.Direction.South
 import com.gsciolti.kata.marsrover.domain.Direction.West
 import com.gsciolti.kata.marsrover.domain.Obstacles
 import com.gsciolti.kata.marsrover.domain.Rover
+import com.gsciolti.kata.marsrover.domain.command.Command
 import com.gsciolti.kata.marsrover.domain.command.MoveBackward
 import com.gsciolti.kata.marsrover.domain.command.MoveForward
 import com.gsciolti.kata.marsrover.domain.command.TurnLeft
 import com.gsciolti.kata.marsrover.domain.command.TurnRight
 import com.gsciolti.kata.marsrover.domain.map.BoundedMap
+import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.map.Map.BoundaryEncountered
 import com.gsciolti.kata.marsrover.domain.map.Map.ObstacleEncountered
 import com.gsciolti.kata.marsrover.domain.map.OpenMap
 import com.gsciolti.kata.marsrover.domain.map.WrappingMap
+import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.flatMap
 import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
@@ -59,27 +62,15 @@ fun main(vararg args: String) {
     val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
     val currentDirection = start.split(",")[2].toDirection()
 
-    var rover = Rover(currentPosition, currentDirection)
-
     val commands = command.split(",")
 
-    for (cmd in commands) {
-
-        var error: Any? = null
-
-        parseCommand(cmd)
-            .tapLeft {
-                error = it
-            }
-            .map { it.apply(rover) }
-            .flatMap { map.validate(it) }
-            .map {
-                rover = it
-            }
-            .tap {
-                val domainCommand = cmd.toCommand()
-
-                val dirmsg = when (domainCommand) {
+    val inputs: Iterable<String> = commands
+    val initialState = Rover(currentPosition, currentDirection)
+    val update: (Rover, String) -> Either<Any, Rover> = { rover, rawCommand ->
+        parseCommand(rawCommand)
+            .flatMap(executeCommandOn(rover, map))
+            .tap { (rover, command) ->
+                val dirmsg = when (command) {
                     is MoveForward -> "Rover moved forward"
                     is MoveBackward -> "Rover moved backward"
                     is TurnLeft -> "Rover turned left"
@@ -89,7 +80,6 @@ fun main(vararg args: String) {
                 println("$dirmsg. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
             }
             .tapLeft { e ->
-                error = e
                 when (e) {
                     // todo display message
                     // todo print rover, not internals
@@ -98,10 +88,21 @@ fun main(vararg args: String) {
                     is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
                 }
             }
+            .map { (rover, _) -> rover }
+    }
 
-        if (error != null) break
+    inputs.fold(initialState.right() as Either<Any, Rover>) { currentState, nextInput ->
+        currentState.flatMap { state -> update(state, nextInput) }
     }
 }
+
+private fun executeCommandOn(rover: Rover, map: Map) =
+    { command: Command ->
+        command
+            .apply(rover)
+            .let(map::validate)
+            .map { updatedRover -> updatedRover and command }
+    }
 
 private fun parseCommand(rawCommand: String) =
     when (rawCommand) {
@@ -113,15 +114,6 @@ private fun parseCommand(rawCommand: String) =
     }
 
 class CommandNotValid(val rawCommand: String)
-
-private fun String.toCommand() =
-    when (this) {
-        "f" -> MoveForward
-        "b" -> MoveBackward
-        "l" -> TurnLeft
-        "r" -> TurnRight
-        else -> throw IllegalArgumentException("Command not recognized")
-    }
 
 private fun Direction.asString() =
     when (this) {
@@ -139,3 +131,5 @@ private fun String.toDirection() =
         "w" -> West
         else -> TODO("Direction not recognized")
     }
+
+infix fun Rover.and(command: Command) = this to command

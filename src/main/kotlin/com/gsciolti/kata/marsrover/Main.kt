@@ -42,7 +42,7 @@ fun main(vararg args: String) {
                 "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt())
                 else -> TODO("Unrecognized map type")
             }
-        } ?: OpenWorld
+        } ?: OpenMap
 
     val realObstacles = Obstacles(
         obstacles?.let { it.map { Coordinates(it.first, it.second) } } ?: emptyList()
@@ -64,16 +64,16 @@ fun main(vararg args: String) {
             break
         }
 
-        val nextRover =
+        var nextRover =
             when (Pair(domainCommand, rover.facing)) {
-                MoveForward to North -> rover.copy(position = map.adjust(rover.position.increaseY()))
-                MoveForward to East -> rover.copy(position = map.adjust(rover.position.increaseX()))
-                MoveForward to South -> rover.copy(position = map.adjust(rover.position.decreaseY()))
-                MoveForward to West -> rover.copy(position = map.adjust(rover.position.decreaseX()))
-                MoveBackward to North -> rover.copy(position = map.adjust(rover.position.decreaseY()))
-                MoveBackward to East -> rover.copy(position = map.adjust(rover.position.decreaseX()))
-                MoveBackward to South -> rover.copy(position = map.adjust(rover.position.increaseY()))
-                MoveBackward to West -> rover.copy(position = map.adjust(rover.position.increaseX()))
+                MoveForward to North -> rover.copy(position = rover.position.increaseY())
+                MoveForward to East -> rover.copy(position = rover.position.increaseX())
+                MoveForward to South -> rover.copy(position = rover.position.decreaseY())
+                MoveForward to West -> rover.copy(position = rover.position.decreaseX())
+                MoveBackward to North -> rover.copy(position = rover.position.decreaseY())
+                MoveBackward to East -> rover.copy(position = rover.position.decreaseX())
+                MoveBackward to South -> rover.copy(position = rover.position.increaseY())
+                MoveBackward to West -> rover.copy(position = rover.position.increaseX())
                 TurnLeft to North -> rover.copy(facing = rover.facing.left())
                 TurnLeft to East -> rover.copy(facing = rover.facing.left())
                 TurnLeft to South -> rover.copy(facing = rover.facing.left())
@@ -84,6 +84,8 @@ fun main(vararg args: String) {
                 TurnRight to West -> rover.copy(facing = rover.facing.right())
                 else -> TODO("Command;direction pair not handled")
             }
+
+        nextRover = nextRover.copy(position = map.adjust(nextRover.position))
 
         val move = Move(rover.position, nextRover.position)
         var error: Any? = null
@@ -187,7 +189,7 @@ class BoundedMap(private val width: Int, private val height: Int) : Map {
 }
 
 
-class WrappingMap(val width: Int, val height: Int) : Map {
+class WrappingMap(private val width: Int, private val height: Int) : Map {
 
     override fun adjust(coordinates: Coordinates) =
         when {
@@ -199,7 +201,7 @@ class WrappingMap(val width: Int, val height: Int) : Map {
         }
 }
 
-object OpenWorld : Map
+object OpenMap : Map
 
 sealed class Direction(val left: () -> Direction, val right: () -> Direction) {
 

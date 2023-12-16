@@ -60,18 +60,7 @@ fun main(vararg args: String) {
             break
         }
 
-        var nextRover =
-            when (Pair(domainCommand, rover.facing)) {
-                MoveForward to North -> rover.copy(position = rover.position.increaseY())
-                MoveForward to East -> rover.copy(position = rover.position.increaseX())
-                MoveForward to South -> rover.copy(position = rover.position.decreaseY())
-                MoveForward to West -> rover.copy(position = rover.position.decreaseX())
-                MoveBackward to North -> rover.copy(position = rover.position.decreaseY())
-                MoveBackward to East -> rover.copy(position = rover.position.decreaseX())
-                MoveBackward to South -> rover.copy(position = rover.position.increaseY())
-                MoveBackward to West -> rover.copy(position = rover.position.increaseX())
-                else -> domainCommand.apply(rover)
-            }
+        var nextRover = domainCommand.apply(rover)
 
         nextRover = nextRover.copy(position = map.adjust(nextRover.position))
 
@@ -117,13 +106,28 @@ private fun String.toCommand() =
     }
 
 interface Command {
-
-    fun apply(rover: Rover): Rover = TODO()
-
+    fun apply(rover: Rover): Rover
 }
 
-object MoveForward : Command
-object MoveBackward : Command
+object MoveForward : Command {
+    override fun apply(rover: Rover) =
+        when (rover.facing) {
+            North -> rover.copy(position = rover.position.increaseY())
+            East -> rover.copy(position = rover.position.increaseX())
+            South -> rover.copy(position = rover.position.decreaseY())
+            West -> rover.copy(position = rover.position.decreaseX())
+        }
+}
+
+object MoveBackward : Command {
+    override fun apply(rover: Rover) =
+        when (rover.facing) {
+            North -> rover.copy(position = rover.position.decreaseY())
+            East -> rover.copy(position = rover.position.decreaseX())
+            South -> rover.copy(position = rover.position.increaseY())
+            West -> rover.copy(position = rover.position.increaseX())
+        }
+}
 
 object TurnLeft : Command {
     override fun apply(rover: Rover) =

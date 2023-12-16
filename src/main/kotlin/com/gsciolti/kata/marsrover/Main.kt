@@ -29,6 +29,10 @@ fun main(vararg args: String) {
                 }
         }
 
+    val realObstacles = Obstacles(
+        obstacles?.let { it.map { Coordinates(it.first, it.second) } } ?: emptyList()
+    )
+
     val map = args
         .filter { it.startsWith("-map") }
         .getOrNull(0)
@@ -38,15 +42,11 @@ fun main(vararg args: String) {
             val mapType = rawMapAndType.getOrElse(1) { "" }
 
             when (mapType) {
-                "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt())
-                "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt())
+                "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), realObstacles)
+                "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), realObstacles)
                 else -> TODO("Unrecognized map type")
             }
-        } ?: OpenMap
-
-    val realObstacles = Obstacles(
-        obstacles?.let { it.map { Coordinates(it.first, it.second) } } ?: emptyList()
-    )
+        } ?: OpenMap(realObstacles)
 
     val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
     val currentDirection = start.split(",")[2].toDirection()
@@ -91,7 +91,6 @@ fun main(vararg args: String) {
         var error: Any? = null
 
         map.validate(move)
-            .flatMap { m -> realObstacles.validate(m) }
             .map {
                 rover = nextRover.copy()
             }
@@ -167,19 +166,25 @@ class ObstacleEncountered(val move: Move)
 
 class BoundaryEncountered(val move: Move)
 
-interface Map {
+// todo obstacles, width height as plugins
+sealed class Map(private val obstacles: Obstacles) {
 
-    fun adjust(coordinates: Coordinates): Coordinates =
+    open fun adjust(coordinates: Coordinates): Coordinates =
         coordinates
 
-    fun validate(move: Move): Either<BoundaryEncountered, Move> =
-        move.right()
+    // todo change any to err
+    open fun validate(move: Move): Either<Any, Move> =
+        obstacles.validate(move)
 }
 
 
-class BoundedMap(private val width: Int, private val height: Int) : Map {
+class BoundedMap(private val width: Int, private val height: Int, obstacles: Obstacles) : Map(obstacles) {
 
     override fun validate(move: Move) =
+        validateAgainstBoundaries(move)
+            .flatMap { super.validate(move) }
+
+    private fun validateAgainstBoundaries(move: Move) =
         if (move.nextPosition.x < 0 || move.nextPosition.x >= width ||
             move.nextPosition.y < 0 || move.nextPosition.y >= height
         )
@@ -189,7 +194,7 @@ class BoundedMap(private val width: Int, private val height: Int) : Map {
 }
 
 
-class WrappingMap(private val width: Int, private val height: Int) : Map {
+class WrappingMap(private val width: Int, private val height: Int, obstacles: Obstacles) : Map(obstacles) {
 
     override fun adjust(coordinates: Coordinates) =
         when {
@@ -201,7 +206,7 @@ class WrappingMap(private val width: Int, private val height: Int) : Map {
         }
 }
 
-object OpenMap : Map
+class OpenMap(obstacles: Obstacles) : Map(obstacles)
 
 sealed class Direction(val left: () -> Direction, val right: () -> Direction) {
 

@@ -60,11 +60,13 @@ fun main(vararg args: String) {
             break
         }
 
+        // todo create move here with position not adjusted, then adjust and validate in the map
         var nextRover = domainCommand.apply(rover)
 
         nextRover = nextRover.copy(position = map.adjust(nextRover.position))
 
         val move = Move(rover.position, nextRover.position)
+
         var error: Any? = null
 
         map.validate(move)

@@ -1,4 +1,4 @@
-package com.gsciolti.kata.marsrover
+package com.gsciolti.kata.marsrover.domain
 
 data class Coordinates(val x: Int, val y: Int) {
 

@@ -17,6 +17,9 @@ import com.gsciolti.kata.marsrover.domain.map.Map.BoundaryEncountered
 import com.gsciolti.kata.marsrover.domain.map.Map.ObstacleEncountered
 import com.gsciolti.kata.marsrover.domain.map.OpenMap
 import com.gsciolti.kata.marsrover.domain.map.WrappingMap
+import com.gsciolti.kata.marsrover.functional.flatMap
+import com.gsciolti.kata.marsrover.functional.left
+import com.gsciolti.kata.marsrover.functional.right
 
 fun main(vararg args: String) {
 
@@ -62,28 +65,25 @@ fun main(vararg args: String) {
 
     for (cmd in commands) {
 
-        val domainCommand = try {
-            cmd.toCommand()
-        } catch (e: Exception) {
-            println("Invalid command '$cmd'. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
-            break
-        }
-
-        val move = domainCommand.apply(rover)
-
         var error: Any? = null
 
-        map.validate(move)
+        parseCommand(cmd)
+            .tapLeft {
+                error = it
+            }
+            .map { it.apply(rover) }
+            .flatMap { map.validate(it) }
             .map {
                 rover = it
             }
             .tap {
+                val domainCommand = cmd.toCommand()
+
                 val dirmsg = when (domainCommand) {
                     is MoveForward -> "Rover moved forward"
                     is MoveBackward -> "Rover moved backward"
                     is TurnLeft -> "Rover turned left"
                     is TurnRight -> "Rover turned right"
-                    else -> TODO("Command not recognized")
                 }
 
                 println("$dirmsg. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
@@ -93,6 +93,7 @@ fun main(vararg args: String) {
                 when (e) {
                     // todo display message
                     // todo print rover, not internals
+                    is CommandNotValid -> println("Invalid command '${e.rawCommand}'. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
                     is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
                     is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
                 }
@@ -101,6 +102,17 @@ fun main(vararg args: String) {
         if (error != null) break
     }
 }
+
+private fun parseCommand(rawCommand: String) =
+    when (rawCommand) {
+        "f" -> MoveForward.right()
+        "b" -> MoveBackward.right()
+        "l" -> TurnLeft.right()
+        "r" -> TurnRight.right()
+        else -> CommandNotValid(rawCommand).left()
+    }
+
+class CommandNotValid(val rawCommand: String)
 
 private fun String.toCommand() =
     when (this) {

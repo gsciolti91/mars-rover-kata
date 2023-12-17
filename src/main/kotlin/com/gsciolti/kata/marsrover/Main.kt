@@ -24,7 +24,7 @@ import com.gsciolti.kata.marsrover.functional.right
 fun main(vararg args: String) {
 
     val start = args.filter { it.startsWith("-start") }.first().split("=")[1]
-    val command = args.filter { it.startsWith("-command") }.first().split("=")[1]
+    val commandParam = args.filter { it.startsWith("-command") }.first().split("=")[1]
     val obstacles: List<Pair<Int, Int>>? = args
         .filter { it.startsWith("-obstacles") }
         .getOrNull(0)
@@ -65,20 +65,25 @@ fun main(vararg args: String) {
                 StdOut
             )
 
-    val currentPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
-    val currentDirection = start.split(",")[2].toDirection()
+    val initialPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
+    val initialDirection = start.split(",")[2].toDirection()
 
-    val inputs: Iterable<String> = command.split(",")
-    val initialState = Rover(currentPosition, currentDirection)
-    val update: (Rover, String) -> Either<Any, Rover> = { rover, rawCommand ->
-        executeCommand(rover, rawCommand)
-            .map { (_, rover) -> rover }
-    }
+    val commands: Iterable<String> = commandParam.split(",")
 
-    inputs.fold(initialState.right() as Either<Any, Rover>) { currentState, nextInput ->
-        currentState.flatMap { state -> update(state, nextInput) }
-    }
+    commands.update(
+        initialState = Rover(initialPosition, initialDirection),
+        updateState = { rover, command ->
+            executeCommand(rover, command)
+                .map { (_, rover) -> rover }
+        })
 }
+
+fun <T, L, R> Iterable<T>.update(initialState: R, updateState: (R, T) -> Either<L, R>): Either<L, R> =
+    fold(initialState.right() as Either<L, R>) { currentState, nextInput ->
+        currentState.flatMap { state ->
+            updateState(state, nextInput)
+        }
+    }
 
 private fun String.toDirection() =
     when (this) {

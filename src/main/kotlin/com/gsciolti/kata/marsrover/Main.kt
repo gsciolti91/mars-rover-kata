@@ -79,7 +79,7 @@ fun main(vararg args: String) {
                 val commandMsg = ReportCommandExecutedAsString(command)
                 val roverMsg = ReportRoverPositionAsString(rover)
 
-                println("$commandMsg. $roverMsg")
+                println((commandMsg + roverMsg).value)
             }
             .tapLeft { e ->
                 when (e) {
@@ -87,17 +87,17 @@ fun main(vararg args: String) {
                     // todo print rover, not internals
                     is CommandNotValid -> {
                         val roverMsg = ReportRoverPositionAsString(rover)
-                        println("Invalid command '${e.rawCommand}'. $roverMsg")
+                        println("Invalid command '${e.rawCommand}'. ${roverMsg.value}")
                     }
 
                     is BoundaryEncountered -> {
                         val roverMsg = ReportRoverPositionAsString(e.move.currentRover)
-                        println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. $roverMsg")
+                        println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. ${roverMsg.value}")
                     }
 
                     is ObstacleEncountered -> {
                         val roverMsg = ReportRoverPositionAsString(e.move.currentRover)
-                        println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. $roverMsg")
+                        println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. ${roverMsg.value}")
                     }
                 }
             }
@@ -111,23 +111,35 @@ fun main(vararg args: String) {
     }
 }
 
-interface ReportCommandExecuted<OUT> : (Command) -> OUT
+abstract class Output<T>(val value: T) {
+
+    abstract operator fun plus(other: Output<T>): Output<T>
+}
+
+class StringOutput(value: String) : Output<String>(value) {
+
+    override operator fun plus(other: Output<String>): Output<String> =
+        StringOutput("$value. ${other.value}")
+}
+
+interface ReportCommandExecuted<T> : (Command) -> Output<T>
 
 object ReportCommandExecutedAsString : ReportCommandExecuted<String> {
-    override fun invoke(command: Command): String =
+
+    override fun invoke(command: Command): StringOutput =
         when (command) {
-            is MoveForward -> "Rover moved forward"
-            is MoveBackward -> "Rover moved backward"
-            is TurnLeft -> "Rover turned left"
-            is TurnRight -> "Rover turned right"
+            is MoveForward -> StringOutput("Rover moved forward")
+            is MoveBackward -> StringOutput("Rover moved backward")
+            is TurnLeft -> StringOutput("Rover turned left")
+            is TurnRight -> StringOutput("Rover turned right")
         }
 }
 
-interface ReportRoverPosition<OUT> : (Rover) -> OUT
+interface ReportRoverPosition<T> : (Rover) -> Output<T>
 
 object ReportRoverPositionAsString : ReportRoverPosition<String> {
-    override fun invoke(rover: Rover): String =
-        "Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]"
+    override fun invoke(rover: Rover): StringOutput =
+        StringOutput("Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
 }
 
 private fun Direction.asString() =

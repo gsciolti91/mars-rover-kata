@@ -17,9 +17,7 @@ import com.gsciolti.kata.marsrover.domain.map.BoundedMap
 import com.gsciolti.kata.marsrover.domain.map.OpenMap
 import com.gsciolti.kata.marsrover.domain.map.WrappingMap
 import com.gsciolti.kata.marsrover.domain.report.reportingWith
-import com.gsciolti.kata.marsrover.functional.Either
-import com.gsciolti.kata.marsrover.functional.flatMap
-import com.gsciolti.kata.marsrover.functional.right
+import com.gsciolti.kata.marsrover.functional.update
 
 fun main(vararg args: String) {
 
@@ -29,7 +27,7 @@ fun main(vararg args: String) {
     }
 
     val startParams = params["-start"]!!.split(",")
-    val commandParam = params["-command"]!!
+    val commands = params["-command"]!!.split(",")
     val obstacles = params["-obstacles"]?.let {
         it.split(";")
             .map {
@@ -60,25 +58,18 @@ fun main(vararg args: String) {
                 StdOut
             )
 
-    val initialPosition = Coordinates(startParams[0].toInt(), startParams[1].toInt())
-    val initialDirection = startParams[2].toDirection()
-
-    val commands: Iterable<String> = commandParam.split(",")
+    val initialRover = Rover(
+        Coordinates(startParams[0].toInt(), startParams[1].toInt()),
+        startParams[2].toDirection()
+    )
 
     commands.update(
-        initialState = Rover(initialPosition, initialDirection),
+        initialState = initialRover,
         updateState = { rover, command ->
             executeCommand(rover, command)
-                .map { (_, rover) -> rover }
+                .map { (_, updatedRover) -> updatedRover }
         })
 }
-
-fun <T, L, R> Iterable<T>.update(initialState: R, updateState: (R, T) -> Either<L, R>): Either<L, R> =
-    fold(initialState.right() as Either<L, R>) { currentState, nextInput ->
-        currentState.flatMap { state ->
-            updateState(state, nextInput)
-        }
-    }
 
 private fun String.toDirection() =
     when (this) {
@@ -88,5 +79,3 @@ private fun String.toDirection() =
         "w" -> West
         else -> TODO("Direction not recognized")
     }
-
-infix fun <A, B> A.and(b: B) = this to b

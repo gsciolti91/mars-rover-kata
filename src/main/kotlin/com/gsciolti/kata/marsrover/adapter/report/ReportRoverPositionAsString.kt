@@ -2,6 +2,10 @@ package com.gsciolti.kata.marsrover.adapter.report
 
 import com.gsciolti.kata.marsrover.adapter.report.output.StringOutput
 import com.gsciolti.kata.marsrover.domain.Direction
+import com.gsciolti.kata.marsrover.domain.Direction.East
+import com.gsciolti.kata.marsrover.domain.Direction.North
+import com.gsciolti.kata.marsrover.domain.Direction.South
+import com.gsciolti.kata.marsrover.domain.Direction.West
 import com.gsciolti.kata.marsrover.domain.Rover
 import com.gsciolti.kata.marsrover.domain.report.ReportRoverPosition
 
@@ -12,8 +16,8 @@ object ReportRoverPositionAsString : ReportRoverPosition<String> {
 
 private fun Direction.asString() =
     when (this) {
-        Direction.North -> "n"
-        Direction.East -> "e"
-        Direction.South -> "s"
-        Direction.West -> "w"
+        North -> "n"
+        East -> "e"
+        South -> "s"
+        West -> "w"
     }

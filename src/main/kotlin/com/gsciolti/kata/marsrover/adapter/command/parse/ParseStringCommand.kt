@@ -1,4 +1,4 @@
-package com.gsciolti.kata.marsrover
+package com.gsciolti.kata.marsrover.adapter.command.parse
 
 import com.gsciolti.kata.marsrover.domain.command.Command
 import com.gsciolti.kata.marsrover.domain.command.MoveBackward

@@ -13,6 +13,7 @@ import com.gsciolti.kata.marsrover.domain.command.MoveBackward
 import com.gsciolti.kata.marsrover.domain.command.MoveForward
 import com.gsciolti.kata.marsrover.domain.command.TurnLeft
 import com.gsciolti.kata.marsrover.domain.command.TurnRight
+import com.gsciolti.kata.marsrover.domain.command.parse.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.map.BoundedMap
 import com.gsciolti.kata.marsrover.domain.map.Map.BoundaryEncountered
 import com.gsciolti.kata.marsrover.domain.map.Map.ObstacleEncountered
@@ -20,7 +21,6 @@ import com.gsciolti.kata.marsrover.domain.map.OpenMap
 import com.gsciolti.kata.marsrover.domain.map.WrappingMap
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.flatMap
-import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
 
 fun main(vararg args: String) {
@@ -67,7 +67,7 @@ fun main(vararg args: String) {
     val initialState = Rover(currentPosition, currentDirection)
     val update: (Rover, String) -> Either<Any, Rover> = { rover, rawCommand ->
         // domain
-        parseCommand(rawCommand)
+        ParseStringCommand(rawCommand)
             .map { command: Command -> command and command.apply(rover) }
             .flatMap { (command, move) ->
                 map.validate(move)
@@ -103,17 +103,6 @@ fun main(vararg args: String) {
         currentState.flatMap { state -> update(state, nextInput) }
     }
 }
-
-private fun parseCommand(rawCommand: String) =
-    when (rawCommand) {
-        "f" -> MoveForward.right()
-        "b" -> MoveBackward.right()
-        "l" -> TurnLeft.right()
-        "r" -> TurnRight.right()
-        else -> CommandNotValid(rawCommand).left()
-    }
-
-class CommandNotValid(val rawCommand: String)
 
 private fun Direction.asString() =
     when (this) {

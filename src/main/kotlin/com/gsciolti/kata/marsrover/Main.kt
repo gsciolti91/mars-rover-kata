@@ -76,22 +76,29 @@ fun main(vararg args: String) {
 
             // logging
             .tap { (command, rover) ->
-                val dirmsg = when (command) {
-                    is MoveForward -> "Rover moved forward"
-                    is MoveBackward -> "Rover moved backward"
-                    is TurnLeft -> "Rover turned left"
-                    is TurnRight -> "Rover turned right"
-                }
+                val commandMsg = ReportCommandExecutedAsString(command)
+                val roverMsg = ReportRoverPositionAsString(rover)
 
-                println("$dirmsg. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
+                println("$commandMsg. $roverMsg")
             }
             .tapLeft { e ->
                 when (e) {
                     // todo display message
                     // todo print rover, not internals
-                    is CommandNotValid -> println("Invalid command '${e.rawCommand}'. Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]")
-                    is BoundaryEncountered -> println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
-                    is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
+                    is CommandNotValid -> {
+                        val roverMsg = ReportRoverPositionAsString(rover)
+                        println("Invalid command '${e.rawCommand}'. $roverMsg")
+                    }
+
+                    is BoundaryEncountered -> {
+                        val roverMsg = ReportRoverPositionAsString(e.move.currentRover)
+                        println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. $roverMsg")
+                    }
+
+                    is ObstacleEncountered -> {
+                        val roverMsg = ReportRoverPositionAsString(e.move.currentRover)
+                        println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. $roverMsg")
+                    }
                 }
             }
 
@@ -102,6 +109,25 @@ fun main(vararg args: String) {
     inputs.fold(initialState.right() as Either<Any, Rover>) { currentState, nextInput ->
         currentState.flatMap { state -> update(state, nextInput) }
     }
+}
+
+interface ReportCommandExecuted<OUT> : (Command) -> OUT
+
+object ReportCommandExecutedAsString : ReportCommandExecuted<String> {
+    override fun invoke(command: Command): String =
+        when (command) {
+            is MoveForward -> "Rover moved forward"
+            is MoveBackward -> "Rover moved backward"
+            is TurnLeft -> "Rover turned left"
+            is TurnRight -> "Rover turned right"
+        }
+}
+
+interface ReportRoverPosition<OUT> : (Rover) -> OUT
+
+object ReportRoverPositionAsString : ReportRoverPosition<String> {
+    override fun invoke(rover: Rover): String =
+        "Current [${rover.position.x},${rover.position.y}:${rover.facing.asString()}]"
 }
 
 private fun Direction.asString() =

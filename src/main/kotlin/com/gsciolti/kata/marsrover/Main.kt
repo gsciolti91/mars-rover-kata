@@ -66,6 +66,8 @@ fun main(vararg args: String) {
     val inputs: Iterable<String> = commands
     val initialState = Rover(currentPosition, currentDirection)
     val update: (Rover, String) -> Either<Any, Rover> = { rover, rawCommand ->
+
+        // todo extract api and decoration
         // domain
         ParseStringCommand(rawCommand)
             .map { command: Command -> command and command.apply(rover) }
@@ -82,22 +84,26 @@ fun main(vararg args: String) {
                 println((commandMsg + roverMsg).value)
             }
             .tapLeft { e ->
+
+                val reportError = ReportErrorAsString
+
                 when (e) {
-                    // todo display message
-                    // todo print rover, not internals
                     is CommandNotValid -> {
                         val roverMsg = ReportRoverPositionAsString(rover)
-                        println("Invalid command '${e.rawCommand}'. ${roverMsg.value}")
+                        val errorMsg = reportError(e) // todo e.report() possible??
+                        println((errorMsg + roverMsg).value)
                     }
 
                     is BoundaryEncountered -> {
                         val roverMsg = ReportRoverPositionAsString(e.move.currentRover)
-                        println("Boundary encountered at [${e.move.currentRover.position.x},${e.move.currentRover.position.y}]. ${roverMsg.value}")
+                        val errorMsg = reportError(e)
+                        println((errorMsg + roverMsg).value)
                     }
 
                     is ObstacleEncountered -> {
                         val roverMsg = ReportRoverPositionAsString(e.move.currentRover)
-                        println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. ${roverMsg.value}")
+                        val errorMsg = reportError(e)
+                        println((errorMsg + roverMsg).value)
                     }
                 }
             }
@@ -132,6 +138,19 @@ object ReportCommandExecutedAsString : ReportCommandExecuted<String> {
             is MoveBackward -> StringOutput("Rover moved backward")
             is TurnLeft -> StringOutput("Rover turned left")
             is TurnRight -> StringOutput("Rover turned right")
+        }
+}
+
+interface ReportError<T> : (Any) -> Output<T>
+
+object ReportErrorAsString : ReportError<String> {
+
+    override fun invoke(error: Any): StringOutput =
+        when (error) {
+            is CommandNotValid -> StringOutput("Invalid command '${error.rawCommand}'")
+            is BoundaryEncountered -> StringOutput("Boundary encountered at [${error.move.currentRover.position.x},${error.move.currentRover.position.y}]")
+            is ObstacleEncountered -> StringOutput("Obstacle encountered at [${error.move.nextRover.position.x},${error.move.nextRover.position.y}]")
+            else -> TODO("error not handled")
         }
 }
 

@@ -14,7 +14,6 @@ import com.gsciolti.kata.marsrover.domain.command.MoveForward
 import com.gsciolti.kata.marsrover.domain.command.TurnLeft
 import com.gsciolti.kata.marsrover.domain.command.TurnRight
 import com.gsciolti.kata.marsrover.domain.map.BoundedMap
-import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.map.Map.BoundaryEncountered
 import com.gsciolti.kata.marsrover.domain.map.Map.ObstacleEncountered
 import com.gsciolti.kata.marsrover.domain.map.OpenMap
@@ -67,9 +66,16 @@ fun main(vararg args: String) {
     val inputs: Iterable<String> = commands
     val initialState = Rover(currentPosition, currentDirection)
     val update: (Rover, String) -> Either<Any, Rover> = { rover, rawCommand ->
+        // domain
         parseCommand(rawCommand)
-            .flatMap(executeCommandOn(rover, map))
-            .tap { (rover, command) ->
+            .map { command: Command -> command and command.apply(rover) }
+            .flatMap { (command, move) ->
+                map.validate(move)
+                    .map { rover -> command and rover }
+            }
+
+            // logging
+            .tap { (command, rover) ->
                 val dirmsg = when (command) {
                     is MoveForward -> "Rover moved forward"
                     is MoveBackward -> "Rover moved backward"
@@ -88,21 +94,15 @@ fun main(vararg args: String) {
                     is ObstacleEncountered -> println("Obstacle encountered at [${e.move.nextRover.position.x},${e.move.nextRover.position.y}]. Current [${e.move.currentRover.position.x},${e.move.currentRover.position.y}:${rover.facing.asString()}]")
                 }
             }
-            .map { (rover, _) -> rover }
+
+            // flow
+            .map { (_, rover) -> rover }
     }
 
     inputs.fold(initialState.right() as Either<Any, Rover>) { currentState, nextInput ->
         currentState.flatMap { state -> update(state, nextInput) }
     }
 }
-
-private fun executeCommandOn(rover: Rover, map: Map) =
-    { command: Command ->
-        command
-            .apply(rover)
-            .let(map::validate)
-            .map { updatedRover -> updatedRover and command }
-    }
 
 private fun parseCommand(rawCommand: String) =
     when (rawCommand) {
@@ -132,4 +132,4 @@ private fun String.toDirection() =
         else -> TODO("Direction not recognized")
     }
 
-infix fun Rover.and(command: Command) = this to command
+infix fun <A, B> A.and(b: B) = this to b

@@ -23,38 +23,33 @@ import com.gsciolti.kata.marsrover.functional.right
 
 fun main(vararg args: String) {
 
-    val start = args.filter { it.startsWith("-start") }.first().split("=")[1]
-    val commandParam = args.filter { it.startsWith("-command") }.first().split("=")[1]
-    val obstacles: List<Pair<Int, Int>>? = args
-        .filter { it.startsWith("-obstacles") }
-        .getOrNull(0)
-        ?.let {
-            it.split("=")[1]
-                .split(";")
-                .map {
-                    val rawCoordinates = it.split(",")
-                    rawCoordinates[0].replace("[", "").toInt() to rawCoordinates[1].replace("]", "").toInt()
-                }
-        }
+    val params = args.associate {
+        val keyValue = it.split("=")
+        keyValue[0] to keyValue[1]
+    }
 
-    val realObstacles = Obstacles(
-        obstacles?.let { it.map { Coordinates(it.first, it.second) } } ?: emptyList()
-    )
-
-    val map = args
-        .filter { it.startsWith("-map") }
-        .getOrNull(0)
-        ?.let {
-            val rawMapAndType = it.split("=")[1].split(",")
-            val mapDimensions = rawMapAndType[0].split("x")
-            val mapType = rawMapAndType.getOrElse(1) { "" }
-
-            when (mapType) {
-                "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), realObstacles)
-                "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), realObstacles)
-                else -> TODO("Unrecognized map type")
+    val startParams = params["-start"]!!.split(",")
+    val commandParam = params["-command"]!!
+    val obstacles = params["-obstacles"]?.let {
+        it.split(";")
+            .map {
+                val rawCoordinates = it.split(",")
+                Coordinates(rawCoordinates[0].replace("[", "").toInt(), rawCoordinates[1].replace("]", "").toInt())
             }
-        } ?: OpenMap(realObstacles)
+    }
+        ?.let(::Obstacles) ?: Obstacles(emptyList())
+
+    val map = params["-map"]?.let {
+        val rawMapAndType = it.split(",")
+        val mapDimensions = rawMapAndType[0].split("x")
+        val mapType = rawMapAndType.getOrElse(1) { "" }
+
+        when (mapType) {
+            "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), obstacles)
+            "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), obstacles)
+            else -> TODO("Unrecognized map type")
+        }
+    } ?: OpenMap(obstacles)
 
     val executeCommand =
         ExecuteCommandApi(ParseStringCommand, map)
@@ -65,8 +60,8 @@ fun main(vararg args: String) {
                 StdOut
             )
 
-    val initialPosition = Coordinates(start.split(",")[0].toInt(), start.split(",")[1].toInt())
-    val initialDirection = start.split(",")[2].toDirection()
+    val initialPosition = Coordinates(startParams[0].toInt(), startParams[1].toInt())
+    val initialDirection = startParams[2].toDirection()
 
     val commands: Iterable<String> = commandParam.split(",")
 

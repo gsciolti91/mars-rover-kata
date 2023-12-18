@@ -18,6 +18,5 @@ infix operator fun <T> Output<T>.plus(other: Output<T>): Output<T> =
             is Value<T> -> this + other
             is None -> None
         }
-
         is None -> other
     }

@@ -5,6 +5,8 @@ import com.gsciolti.kata.marsrover.domain.report.output.Output.Value
 
 interface OutputChannel<T> {
 
+    fun flush()
+
     fun display(value: Value<T>)
 
     fun display(output: Output<T>) =
@@ -12,4 +14,8 @@ interface OutputChannel<T> {
             is Value -> display(output)
             is None -> {}
         }
+
+    operator fun plus(other: OutputChannel<T>): OutputChannel<T> =
+        MultipleOutputChannel(this, other)
 }
+

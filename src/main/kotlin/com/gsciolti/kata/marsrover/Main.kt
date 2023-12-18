@@ -4,6 +4,7 @@ import com.gsciolti.kata.marsrover.adapter.command.parse.ParseStringCommand
 import com.gsciolti.kata.marsrover.adapter.report.ReportCommandExecutedAsString
 import com.gsciolti.kata.marsrover.adapter.report.ReportErrorAsString
 import com.gsciolti.kata.marsrover.adapter.report.ReportRoverPositionAsString
+import com.gsciolti.kata.marsrover.adapter.report.output.File
 import com.gsciolti.kata.marsrover.adapter.report.output.StdOut
 import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommandApi
 import com.gsciolti.kata.marsrover.domain.map.BoundedMap
@@ -26,6 +27,8 @@ fun main(vararg args: String) {
         keyValue[0] to keyValue[1]
     }
 
+    // todo use regex to parse commands
+    val outputFile = params["-out"]?.let(::File)
     val startParams = params["-start"]!!.split(",")
     val commands = params["-command"]!!.split(",")
     val obstacles = params["-obstacles"]?.let {
@@ -49,13 +52,15 @@ fun main(vararg args: String) {
         }
     } ?: OpenMap(obstacles)
 
+    val outputChannel = outputFile?.let { StdOut() + outputFile } ?: StdOut()
+
     val executeCommand =
         ExecuteCommandApi(ParseStringCommand, map)
             .reportingWith(
                 ReportRoverPositionAsString,
                 ReportCommandExecutedAsString,
                 ReportErrorAsString,
-                StdOut
+                outputChannel
             )
 
     val initialRover = Rover(
@@ -69,6 +74,8 @@ fun main(vararg args: String) {
             executeCommand(rover, command)
                 .map { (_, updatedRover) -> updatedRover }
         })
+
+    outputChannel.flush()
 }
 
 private fun String.toDirection() =

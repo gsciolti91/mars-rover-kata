@@ -3,8 +3,9 @@ package com.gsciolti.kata.marsrover.adapter.report.output
 import com.gsciolti.kata.marsrover.domain.report.output.Output.Value
 import com.gsciolti.kata.marsrover.domain.report.output.OutputChannel
 
-class StdOut : OutputChannel<String> {
+class File(path: String) : OutputChannel<String> {
 
+    private val file = java.io.File(path)
     private val buffer = StringBuilder()
 
     override fun display(value: Value<String>) {
@@ -12,7 +13,7 @@ class StdOut : OutputChannel<String> {
     }
 
     override fun flush() {
-        print(buffer.toString())
+        file.writeText(buffer.toString())
         buffer.clear()
     }
 }

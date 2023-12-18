@@ -1,12 +1,12 @@
 package com.gsciolti.kata.marsrover.adapter.report
 
 import com.gsciolti.kata.marsrover.adapter.report.output.StringValue
-import com.gsciolti.kata.marsrover.domain.Direction
-import com.gsciolti.kata.marsrover.domain.Direction.East
-import com.gsciolti.kata.marsrover.domain.Direction.North
-import com.gsciolti.kata.marsrover.domain.Direction.South
-import com.gsciolti.kata.marsrover.domain.Direction.West
-import com.gsciolti.kata.marsrover.domain.Rover
+import com.gsciolti.kata.marsrover.domain.model.Direction
+import com.gsciolti.kata.marsrover.domain.model.Direction.East
+import com.gsciolti.kata.marsrover.domain.model.Direction.North
+import com.gsciolti.kata.marsrover.domain.model.Direction.South
+import com.gsciolti.kata.marsrover.domain.model.Direction.West
+import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.Report
 import com.gsciolti.kata.marsrover.domain.report.output.Output
 

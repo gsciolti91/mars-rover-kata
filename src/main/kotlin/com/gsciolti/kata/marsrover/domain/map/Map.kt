@@ -1,8 +1,8 @@
 package com.gsciolti.kata.marsrover.domain.map
 
-import com.gsciolti.kata.marsrover.domain.Move
-import com.gsciolti.kata.marsrover.domain.Obstacles
-import com.gsciolti.kata.marsrover.domain.Rover
+import com.gsciolti.kata.marsrover.domain.model.Move
+import com.gsciolti.kata.marsrover.domain.model.Obstacles
+import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.functional.Either
 
 // todo obstacles, width height as plugins

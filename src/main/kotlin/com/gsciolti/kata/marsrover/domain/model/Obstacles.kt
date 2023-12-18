@@ -1,4 +1,4 @@
-package com.gsciolti.kata.marsrover.domain
+package com.gsciolti.kata.marsrover.domain.model
 
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.functional.left

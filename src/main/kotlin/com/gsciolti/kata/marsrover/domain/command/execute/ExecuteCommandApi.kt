@@ -1,9 +1,9 @@
 package com.gsciolti.kata.marsrover.domain.command.execute
 
-import com.gsciolti.kata.marsrover.domain.Rover
 import com.gsciolti.kata.marsrover.domain.command.Command
 import com.gsciolti.kata.marsrover.domain.command.parse.ParseCommand
 import com.gsciolti.kata.marsrover.domain.map.Map
+import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.and
 import com.gsciolti.kata.marsrover.functional.flatMap

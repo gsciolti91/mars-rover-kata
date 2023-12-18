@@ -1,21 +1,21 @@
 package com.gsciolti.kata.marsrover.domain.report
 
-import com.gsciolti.kata.marsrover.domain.Rover
 import com.gsciolti.kata.marsrover.domain.command.Command
 import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommand
+import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.output.OutputChannel
 import com.gsciolti.kata.marsrover.domain.report.output.plus
 import com.gsciolti.kata.marsrover.functional.Either
 
-class ReportingExecuteCommand<IN, OUT> internal constructor(
-    private val delegateExecute: ExecuteCommand<IN>,
+class ReportingExecuteCommand<CMD, OUT> internal constructor(
+    private val delegateExecute: ExecuteCommand<CMD>,
     private val reportRoverPosition: Report<Rover, OUT>,
     private val reportCommandExecuted: Report<Command, OUT>,
     private val reportError: Report<Any, OUT>,
     private val outputChannel: OutputChannel<OUT>,
-) : ExecuteCommand<IN> {
+) : ExecuteCommand<CMD> {
 
-    override fun invoke(rover: Rover, command: IN): Either<Any, Pair<Command, Rover>> =
+    override fun invoke(rover: Rover, command: CMD): Either<Any, Pair<Command, Rover>> =
         delegateExecute(rover, command)
             .tap { (command, updatedRover) ->
                 outputChannel.display(reportCommandExecuted(command) + reportRoverPosition(updatedRover))

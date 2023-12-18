@@ -1,4 +1,4 @@
-package com.gsciolti.kata.marsrover.domain
+package com.gsciolti.kata.marsrover.domain.model
 
 sealed class Direction(val left: () -> Direction, val right: () -> Direction) {
 

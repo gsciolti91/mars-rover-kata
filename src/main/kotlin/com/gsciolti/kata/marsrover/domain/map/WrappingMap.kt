@@ -1,9 +1,9 @@
 package com.gsciolti.kata.marsrover.domain.map
 
-import com.gsciolti.kata.marsrover.domain.Coordinates
-import com.gsciolti.kata.marsrover.domain.Move
-import com.gsciolti.kata.marsrover.domain.Obstacles
-import com.gsciolti.kata.marsrover.domain.Rover
+import com.gsciolti.kata.marsrover.domain.model.Coordinates
+import com.gsciolti.kata.marsrover.domain.model.Move
+import com.gsciolti.kata.marsrover.domain.model.Obstacles
+import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.functional.Either
 
 class WrappingMap(private val width: Int, private val height: Int, obstacles: Obstacles) : Map(obstacles) {

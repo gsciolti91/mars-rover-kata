@@ -4,13 +4,14 @@ import com.gsciolti.kata.marsrover.domain.Rover
 import com.gsciolti.kata.marsrover.domain.command.Command
 import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommand
 import com.gsciolti.kata.marsrover.domain.report.output.OutputChannel
+import com.gsciolti.kata.marsrover.domain.report.output.plus
 import com.gsciolti.kata.marsrover.functional.Either
 
 class ReportingExecuteCommand<IN, OUT> internal constructor(
     private val delegateExecute: ExecuteCommand<IN>,
-    private val reportRoverPosition: ReportRoverPosition<OUT>,
-    private val reportCommandExecuted: ReportCommandExecuted<OUT>,
-    private val reportError: ReportError<OUT>,
+    private val reportRoverPosition: Report<Rover, OUT>,
+    private val reportCommandExecuted: Report<Command, OUT>,
+    private val reportError: Report<Any, OUT>,
     private val outputChannel: OutputChannel<OUT>,
 ) : ExecuteCommand<IN> {
 
@@ -25,9 +26,9 @@ class ReportingExecuteCommand<IN, OUT> internal constructor(
 }
 
 fun <IN, OUT> ExecuteCommand<IN>.reportingWith(
-    reportRoverPosition: ReportRoverPosition<OUT>,
-    reportCommandExecuted: ReportCommandExecuted<OUT>,
-    reportError: ReportError<OUT>,
+    reportRoverPosition: Report<Rover, OUT>,
+    reportCommandExecuted: Report<Command, OUT>,
+    reportError: Report<Any, OUT>,
     outputChannel: OutputChannel<OUT>
 ) =
     ReportingExecuteCommand(

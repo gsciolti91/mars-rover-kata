@@ -1,6 +1,8 @@
 package com.gsciolti.kata.marsrover.domain.report
 
-import com.gsciolti.kata.marsrover.domain.Rover
 import com.gsciolti.kata.marsrover.domain.report.output.Output
 
-interface ReportRoverPosition<T> : (Rover) -> Output<T>
+class NoReport<IN, OUT> : Report<IN, OUT> {
+
+    override fun invoke(s: IN): Output<OUT> = Output.None
+}

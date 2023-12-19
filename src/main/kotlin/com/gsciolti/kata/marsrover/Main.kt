@@ -7,15 +7,17 @@ import com.gsciolti.kata.marsrover.adapter.report.ReportRoverPositionAsString
 import com.gsciolti.kata.marsrover.adapter.report.output.File
 import com.gsciolti.kata.marsrover.adapter.report.output.StdOut
 import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommandApi
-import com.gsciolti.kata.marsrover.domain.map.BoundedMap
-import com.gsciolti.kata.marsrover.domain.map.OpenMap
-import com.gsciolti.kata.marsrover.domain.map.WrappingMap
+import com.gsciolti.kata.marsrover.domain.map.Map
+import com.gsciolti.kata.marsrover.domain.map.Map.Configuration
+import com.gsciolti.kata.marsrover.domain.map.plugin.MapPlugin
+import com.gsciolti.kata.marsrover.domain.map.plugin.Obstacles
+import com.gsciolti.kata.marsrover.domain.map.plugin.boundaries.Boundaries
+import com.gsciolti.kata.marsrover.domain.map.plugin.wrap.Wrap
 import com.gsciolti.kata.marsrover.domain.model.Coordinates
 import com.gsciolti.kata.marsrover.domain.model.Direction.East
 import com.gsciolti.kata.marsrover.domain.model.Direction.North
 import com.gsciolti.kata.marsrover.domain.model.Direction.South
 import com.gsciolti.kata.marsrover.domain.model.Direction.West
-import com.gsciolti.kata.marsrover.domain.model.Obstacles
 import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.reportingWith
 import com.gsciolti.kata.marsrover.functional.update
@@ -38,19 +40,25 @@ fun main(vararg args: String) {
                 Coordinates(rawCoordinates[0].replace("[", "").toInt(), rawCoordinates[1].replace("]", "").toInt())
             }
     }
-        ?.let(::Obstacles) ?: Obstacles(emptyList())
+        ?.let(::Obstacles)
+        ?: Obstacles(emptyList())
 
-    val map = params["-map"]?.let {
+    val mapPlugin: MapPlugin? = params["-map"]?.let {
         val rawMapAndType = it.split(",")
-        val mapDimensions = rawMapAndType[0].split("x")
+        val mapSize = rawMapAndType[0].split("x")
         val mapType = rawMapAndType.getOrElse(1) { "" }
 
         when (mapType) {
-            "" -> BoundedMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), obstacles)
-            "w" -> WrappingMap(mapDimensions[0].toInt(), mapDimensions[1].toInt(), obstacles)
+            "" -> ::Boundaries
+            "w" -> ::Wrap
             else -> TODO("Unrecognized map type")
-        }
-    } ?: OpenMap(obstacles)
+        }(mapSize[0].toInt(), mapSize[1].toInt())
+    }
+
+    val map = Map {
+        apply(mapPlugin)
+        apply(obstacles)
+    }
 
     val outputChannel = outputFile?.let { StdOut() + outputFile } ?: StdOut()
 
@@ -86,3 +94,6 @@ private fun String.toDirection() =
         "w" -> West
         else -> TODO("Direction not recognized")
     }
+
+fun Configuration.apply(plugin: MapPlugin?): Configuration =
+    also { plugin?.apply()?.invoke(this) }

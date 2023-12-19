@@ -1,5 +1,6 @@
 package com.gsciolti.kata.marsrover.domain.map
 
+import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandError
 import com.gsciolti.kata.marsrover.domain.model.Coordinates
 import com.gsciolti.kata.marsrover.domain.model.Move
 import com.gsciolti.kata.marsrover.domain.model.Obstacles
@@ -8,7 +9,7 @@ import com.gsciolti.kata.marsrover.functional.Either
 
 class WrappingMap(private val width: Int, private val height: Int, obstacles: Obstacles) : Map(obstacles) {
 
-    override fun validate(move: Move): Either<Any, Rover> {
+    override fun validate(move: Move): Either<ExecuteCommandError, Rover> {
 
         val adjustedMove = move.copy(nextRover = move.nextRover.copy(position = adjust(move.nextRover.position)))
 

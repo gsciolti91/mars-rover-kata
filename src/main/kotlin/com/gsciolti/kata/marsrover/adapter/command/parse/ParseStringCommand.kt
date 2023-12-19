@@ -5,7 +5,7 @@ import com.gsciolti.kata.marsrover.domain.command.MoveBackward
 import com.gsciolti.kata.marsrover.domain.command.MoveForward
 import com.gsciolti.kata.marsrover.domain.command.TurnLeft
 import com.gsciolti.kata.marsrover.domain.command.TurnRight
-import com.gsciolti.kata.marsrover.domain.command.parse.CommandNotValid
+import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.parse.ParseCommand
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.left

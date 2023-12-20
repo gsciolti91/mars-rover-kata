@@ -17,6 +17,12 @@ sealed class Either<out L, out R> {
             it
         }
 
+    inline fun tapLeft(block: (L) -> Unit): Either<L, R> =
+        mapLeft {
+            block(it)
+            it
+        }
+
     inline fun <T> fold(leftF: (L) -> T, rightF: (R) -> T): T =
         when (this) {
             is Left -> leftF(value)

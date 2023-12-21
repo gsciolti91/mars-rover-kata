@@ -10,7 +10,4 @@ fun <T, L, R> Iterable<T>.update(initialState: R, updateState: (R, T) -> Either<
 fun <L, R> R.check(checks: Collection<(R) -> Either<L, R>>): Either<L, R> =
     checks.fold(this.right() as Either<L, R>) { result, nextCheck -> result.flatMap(nextCheck) }
 
-fun <L, R> R.check(vararg checks: (R) -> Either<L, R>): Either<L, R> =
-    check(checks.toList())
-
 infix fun <A, B> A.and(b: B) = this to b

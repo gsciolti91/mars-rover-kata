@@ -29,8 +29,6 @@ fun main(vararg args: String) {
         keyValue[0] to keyValue[1]
     }
 
-    // todo use regex to parse commands
-
     val startRegex = """^(\d+),(\d+),([nesw])$""".toRegex()
     val (_, x, y, d) = params["-start"]?.let(startRegex::find)!!.groupValues
     val initialRover = Rover(Coordinates(x.toInt(), y.toInt()), d.toDirection())
@@ -38,6 +36,7 @@ fun main(vararg args: String) {
     val outputFile = params["-out"]?.let(::File)
 
     val commands = params["-command"]!!.split(",")
+
     val obstacles = params["-obstacles"]?.let {
         it.split(";")
             .map {
@@ -48,16 +47,14 @@ fun main(vararg args: String) {
         ?.let(::Obstacles)
         ?: Obstacles(emptyList())
 
-    val mapPlugin: MapPlugin? = params["-map"]?.let {
-        val rawMapAndType = it.split(",")
-        val mapSize = rawMapAndType[0].split("x")
-        val mapType = rawMapAndType.getOrElse(1) { "" }
-
-        when (mapType) {
+    val mapPlugin = params["-map"]?.let {
+        val mapRegex = """^(\d)+x(\d)+,?(w)?$""".toRegex()
+        val (_, width, height, type) = mapRegex.find(it)!!.groupValues
+        when (type) {
             "" -> ::Boundaries
             "w" -> ::Wrap
             else -> TODO("Unrecognized map type")
-        }(mapSize[0].toInt(), mapSize[1].toInt())
+        }(width.toInt(), height.toInt())
     }
 
     val map = Map {

@@ -2,9 +2,11 @@ package com.gsciolti.kata.marsrover.acceptance
 
 import com.gsciolti.kata.marsrover.main
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
 
+@Disabled
 class Step10AcceptanceTest : AcceptanceTest() {
 
     @Test

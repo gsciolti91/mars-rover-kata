@@ -30,8 +30,13 @@ fun main(vararg args: String) {
     }
 
     // todo use regex to parse commands
+
+    val startRegex = """^(\d+),(\d+),([nesw])$""".toRegex()
+    val (_, x, y, d) = params["-start"]?.let(startRegex::find)!!.groupValues
+    val initialRover = Rover(Coordinates(x.toInt(), y.toInt()), d.toDirection())
+
     val outputFile = params["-out"]?.let(::File)
-    val startParams = params["-start"]!!.split(",")
+
     val commands = params["-command"]!!.split(",")
     val obstacles = params["-obstacles"]?.let {
         it.split(";")
@@ -70,11 +75,6 @@ fun main(vararg args: String) {
                 ReportErrorAsString,
                 outputChannel
             )
-
-    val initialRover = Rover(
-        Coordinates(startParams[0].toInt(), startParams[1].toInt()),
-        startParams[2].toDirection()
-    )
 
     commands.update(
         initialState = initialRover,

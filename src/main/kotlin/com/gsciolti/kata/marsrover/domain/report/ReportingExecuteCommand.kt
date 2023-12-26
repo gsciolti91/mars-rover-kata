@@ -11,7 +11,7 @@ import com.gsciolti.kata.marsrover.functional.Either
 class ReportingExecuteCommand<CMD, OUT> internal constructor(
     private val delegateExecute: ExecuteCommand<CMD>,
     private val reportRoverPosition: Report<Rover, OUT>,
-    private val reportCommandExecuted: Report<Command, OUT>,
+    private val reportCommandExecuted: ReportCommandExecuted<OUT>,
     private val reportError: Report<ExecuteCommandError, OUT>,
     private val outputChannel: OutputChannel<OUT>,
 ) : ExecuteCommand<CMD> {
@@ -19,7 +19,7 @@ class ReportingExecuteCommand<CMD, OUT> internal constructor(
     override fun invoke(rover: Rover, command: CMD): Either<ExecuteCommandError, Pair<Command, Rover>> =
         delegateExecute(rover, command)
             .tap { (command, updatedRover) ->
-                outputChannel.display(reportCommandExecuted(command) + reportRoverPosition(updatedRover))
+                outputChannel.display(reportCommandExecuted(command, updatedRover))
             }
             .tapLeft { error ->
                 outputChannel.display(reportError(error) + reportRoverPosition(rover))
@@ -28,7 +28,7 @@ class ReportingExecuteCommand<CMD, OUT> internal constructor(
 
 fun <IN, OUT> ExecuteCommand<IN>.reportingWith(
     reportRoverPosition: Report<Rover, OUT>,
-    reportCommandExecuted: Report<Command, OUT>,
+    reportCommandExecuted: ReportCommandExecuted<OUT>,
     reportError: Report<ExecuteCommandError, OUT>,
     outputChannel: OutputChannel<OUT>
 ) =

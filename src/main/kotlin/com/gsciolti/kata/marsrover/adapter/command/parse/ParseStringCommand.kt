@@ -13,6 +13,7 @@ import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
 import com.gsciolti.kata.marsrover.functional.update
 
+// todo refactor
 object ParseStringCommand : ParseCommand<String> {
     override fun invoke(command: String): Either<CommandNotValid, Command> =
         when (command) {
@@ -33,7 +34,7 @@ object ParseStringCommand : ParseCommand<String> {
                             "b" -> MoveBackward.right()
                             "l" -> TurnLeft.right()
                             "r" -> TurnRight.right()
-                            else -> CommandNotValid(cmd).left()
+                            else -> CommandNotValid(nextCommand).left()
                         }
                             .map {
                                 commands.add(it)

@@ -9,10 +9,5 @@ class StringValue(value: String) : Value<String>(value) {
         StringValue("$value. ${other.value}")
 }
 
-// todo extract / convert to ext fun
-class MultiLineStringValue(values: List<Output<String>>) : Value<String>(
-    values.filterIsInstance<Value<String>>().joinToString("\n") { it.value }) {
-
-    override operator fun plus(other: Value<String>): Value<String> =
-        TODO("Not needed so far")
-}
+fun List<Output<String>>.join(separator: String) =
+    StringValue(filterIsInstance<Value<String>>().joinToString(separator) { it.value })

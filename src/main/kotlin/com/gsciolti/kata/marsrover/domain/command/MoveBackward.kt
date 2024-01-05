@@ -12,13 +12,6 @@ import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.and
 
 object MoveBackward : Command {
-    override fun apply(rover: Rover) =
-        when (rover.facing) {
-            North -> Move(rover, rover.copy(position = rover.position.decreaseY()))
-            East -> Move(rover, rover.copy(position = rover.position.decreaseX()))
-            South -> Move(rover, rover.copy(position = rover.position.increaseY()))
-            West -> Move(rover, rover.copy(position = rover.position.increaseX()))
-        }
 
     override fun apply(rover: Rover, map: Map): Either<ExecuteCommandError, Pair<Command, Rover>> {
         val move = when (rover.facing) {

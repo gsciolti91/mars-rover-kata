@@ -67,9 +67,8 @@ fun main(vararg args: String) {
     val executeCommand =
         ExecuteCommandApi(ParseStringCommand, map)
             .reportingWith(
-                ReportRoverPositionAsString,
-                ReportCommandExecutedAsString,
-                ReportErrorAsString,
+                ReportCommandExecutedAsString(ReportRoverPositionAsString),
+                ReportErrorAsString(ReportRoverPositionAsString),
                 outputChannel
             )
 

@@ -24,6 +24,7 @@ import com.gsciolti.kata.marsrover.functional.update
 
 fun main(vararg args: String) {
 
+    // todo extract parse to functions
     val params = args.associate {
         val keyValue = it.split("=")
         keyValue[0] to keyValue[1]
@@ -64,6 +65,7 @@ fun main(vararg args: String) {
 
     val outputChannel = outputFile?.let { StdOut() + outputFile } ?: StdOut()
 
+    // todo better domain layer
     val executeCommand =
         ExecuteCommandApi(ParseStringCommand, map)
             .reportingWith(

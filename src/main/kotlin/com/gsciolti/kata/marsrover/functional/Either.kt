@@ -42,6 +42,9 @@ sealed class Either<out L, out R> {
 inline fun <L, R, T> Either<L, R>.flatMap(f: (R) -> Either<L, T>): Either<L, T> =
     fold({ Left(it) }, { f(it) })
 
+inline fun <L, R, T> Either<L, R>.flatMapLeft(f: (L) -> Either<T, R>): Either<T, R> =
+    fold({ f(it) }, { Right(it) })
+
 fun <L, R> Either<L, Either<L, R>>.flatten(): Either<L, R> =
     flatMap { it }
 

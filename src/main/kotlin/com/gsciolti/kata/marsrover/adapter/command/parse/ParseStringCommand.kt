@@ -9,6 +9,7 @@ import com.gsciolti.kata.marsrover.domain.command.TurnRight
 import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.parse.ParseCommand
 import com.gsciolti.kata.marsrover.functional.Either
+import com.gsciolti.kata.marsrover.functional.flatMapLeft
 import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
 import com.gsciolti.kata.marsrover.functional.update
@@ -29,7 +30,7 @@ object ParseSimpleStringCommand : ParseCommand<String> {
 object ParseStringCommand : ParseCommand<String> {
     override fun invoke(command: String): Either<CommandNotValid, Command> =
         ParseSimpleStringCommand(command)
-            .fold({
+            .flatMapLeft {
                 it.rawCommand
                     .split("_")
                     .update(mutableListOf<Command>()) { commands, nextCommand ->
@@ -39,5 +40,5 @@ object ParseStringCommand : ParseCommand<String> {
                         }
                     }
                     .map(::AtomicCommand)
-            }, { it.right() })
+            }
 }

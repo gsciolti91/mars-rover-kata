@@ -42,15 +42,11 @@ object ParseAtomicStringCommand : ParseCommand<String> {
 }
 
 class CascadingParseStringCommand(
-    private val parsers: List<ParseCommand<String>> = listOf(
-        ParseSimpleStringCommand,
-        ParseAtomicStringCommand
-    )
+    private val parsers: List<ParseCommand<String>>
 ) : ParseCommand<String> {
 
     override fun invoke(command: String): Either<CommandNotValid, Command> =
-        ParseSimpleStringCommand(command)
-            .flatMapLeft {
-                ParseAtomicStringCommand(command)
-            }
+        parsers.fold(CommandNotValid("").left() as Either<CommandNotValid, Command>) { result, nextParse ->
+            result.flatMapLeft { nextParse(command) }
+        }
 }

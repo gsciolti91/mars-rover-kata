@@ -1,6 +1,5 @@
 package com.gsciolti.kata.marsrover
 
-import com.gsciolti.kata.marsrover.adapter.command.parse.CascadingParseStringCommand
 import com.gsciolti.kata.marsrover.adapter.command.parse.ParseAtomicStringCommand
 import com.gsciolti.kata.marsrover.adapter.command.parse.ParseSimpleStringCommand
 import com.gsciolti.kata.marsrover.adapter.report.ReportCommandExecutedAsString
@@ -9,6 +8,7 @@ import com.gsciolti.kata.marsrover.adapter.report.ReportRoverPositionAsString
 import com.gsciolti.kata.marsrover.adapter.report.output.File
 import com.gsciolti.kata.marsrover.adapter.report.output.StdOut
 import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommandApi
+import com.gsciolti.kata.marsrover.domain.command.parse.CascadingParseCommand
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.map.Map.Configuration
 import com.gsciolti.kata.marsrover.domain.map.plugin.MapPlugin
@@ -68,7 +68,7 @@ fun main(vararg args: String) {
     val outputChannel = outputFile?.let { StdOut() + outputFile } ?: StdOut()
 
     // todo better domain layer
-    val parseCommand = CascadingParseStringCommand(
+    val parseCommand = CascadingParseCommand(
         ParseSimpleStringCommand,
         ParseAtomicStringCommand
     )

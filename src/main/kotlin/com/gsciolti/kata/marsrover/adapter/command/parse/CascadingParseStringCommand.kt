@@ -27,18 +27,24 @@ object ParseSimpleStringCommand : ParseCommand<String> {
 }
 
 // todo refactor
-object ParseStringCommand : ParseCommand<String> {
+object ParseAtomicStringCommand : ParseCommand<String> {
+
+    override fun invoke(command: String): Either<CommandNotValid, Command> =
+        command
+            .split("_")
+            .update(mutableListOf<Command>()) { commands, nextCommand ->
+                ParseSimpleStringCommand(nextCommand).map {
+                    commands.add(it)
+                    commands
+                }
+            }
+            .map(::AtomicCommand)
+}
+
+object CascadingParseStringCommand : ParseCommand<String> {
     override fun invoke(command: String): Either<CommandNotValid, Command> =
         ParseSimpleStringCommand(command)
             .flatMapLeft {
-                it.rawCommand
-                    .split("_")
-                    .update(mutableListOf<Command>()) { commands, nextCommand ->
-                        ParseSimpleStringCommand(nextCommand).map {
-                            commands.add(it)
-                            commands
-                        }
-                    }
-                    .map(::AtomicCommand)
+                ParseAtomicStringCommand(command)
             }
 }

@@ -1,6 +1,6 @@
 package com.gsciolti.kata.marsrover
 
-import com.gsciolti.kata.marsrover.adapter.command.parse.ParseStringCommand
+import com.gsciolti.kata.marsrover.adapter.command.parse.CascadingParseStringCommand
 import com.gsciolti.kata.marsrover.adapter.report.ReportCommandExecutedAsString
 import com.gsciolti.kata.marsrover.adapter.report.ReportErrorAsString
 import com.gsciolti.kata.marsrover.adapter.report.ReportRoverPositionAsString
@@ -67,7 +67,7 @@ fun main(vararg args: String) {
 
     // todo better domain layer
     val executeCommand =
-        ExecuteCommandApi(ParseStringCommand, map)
+        ExecuteCommandApi(CascadingParseStringCommand, map)
             .reportingWith(
                 ReportCommandExecutedAsString(ReportRoverPositionAsString),
                 ReportErrorAsString(ReportRoverPositionAsString),

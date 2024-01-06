@@ -1,5 +1,6 @@
-package com.gsciolti.kata.marsrover.acceptance
+package com.gsciolti.kata.marsrover.acceptance.steps
 
+import com.gsciolti.kata.marsrover.acceptance.AcceptanceTest
 import com.gsciolti.kata.marsrover.main
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled

@@ -1,20 +1,21 @@
-package com.gsciolti.kata.marsrover.acceptance
+package com.gsciolti.kata.marsrover.acceptance.steps
 
+import com.gsciolti.kata.marsrover.acceptance.AcceptanceTest
 import com.gsciolti.kata.marsrover.main
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.io.File
 
 @Disabled
-class Step10AcceptanceTest : AcceptanceTest() {
+class Step6AcceptanceTest : AcceptanceTest() {
 
     @Test
-    fun `should write the output to a file as well as to the standard output`() {
+    fun `should handle multiple commands in a row`() {
 
-        main("-start=0,0,n", "-command=f,f,b,l,b,r,f", "-out=${file.name}")
+        main("-start=0,0,n", "-command=f,f,b,l,b,r,f")
 
-        val output = """
+        assertThat(logs()).isEqualTo(
+            """
                 Rover moved forward. Current [0,1:n]
                 Rover moved forward. Current [0,2:n]
                 Rover moved backward. Current [0,1:n]
@@ -22,17 +23,8 @@ class Step10AcceptanceTest : AcceptanceTest() {
                 Rover moved backward. Current [1,1:w]
                 Rover turned right. Current [1,1:n]
                 Rover moved forward. Current [1,2:n]
-
+            
             """.trimIndent()
-
-        assertThat(logs()).isEqualTo(output)
-        assertThat(contentOf(file)).isEqualTo(output)
-
-        file.delete()
+        )
     }
-
-    private val file = File("output.txt")
-
-    private fun contentOf(file: File): String =
-        file.readText()
 }

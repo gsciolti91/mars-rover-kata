@@ -13,8 +13,8 @@ import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
 import com.gsciolti.kata.marsrover.functional.update
 
-// todo refactor
-object ParseStringCommand : ParseCommand<String> {
+object ParseSimpleStringCommand : ParseCommand<String> {
+
     override fun invoke(command: String): Either<CommandNotValid, Command> =
         when (command) {
             "f" -> MoveForward.right()
@@ -23,23 +23,20 @@ object ParseStringCommand : ParseCommand<String> {
             "r" -> TurnRight.right()
             else -> CommandNotValid(command).left()
         }
-            .fold({
-                val cmd = it.rawCommand
+}
 
-                cmd
+// todo refactor
+object ParseStringCommand : ParseCommand<String> {
+    override fun invoke(command: String): Either<CommandNotValid, Command> =
+        ParseSimpleStringCommand(command)
+            .fold({
+                it.rawCommand
                     .split("_")
                     .update(mutableListOf<Command>()) { commands, nextCommand ->
-                        when (nextCommand) {
-                            "f" -> MoveForward.right()
-                            "b" -> MoveBackward.right()
-                            "l" -> TurnLeft.right()
-                            "r" -> TurnRight.right()
-                            else -> CommandNotValid(nextCommand).left()
+                        ParseSimpleStringCommand(nextCommand).map {
+                            commands.add(it)
+                            commands
                         }
-                            .map {
-                                commands.add(it)
-                                commands
-                            }
                     }
                     .map(::AtomicCommand)
             }, { it.right() })

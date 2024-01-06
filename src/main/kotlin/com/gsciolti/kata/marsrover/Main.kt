@@ -67,7 +67,7 @@ fun main(vararg args: String) {
 
     // todo better domain layer
     val executeCommand =
-        ExecuteCommandApi(CascadingParseStringCommand, map)
+        ExecuteCommandApi(CascadingParseStringCommand(), map)
             .reportingWith(
                 ReportCommandExecutedAsString(ReportRoverPositionAsString),
                 ReportErrorAsString(ReportRoverPositionAsString),

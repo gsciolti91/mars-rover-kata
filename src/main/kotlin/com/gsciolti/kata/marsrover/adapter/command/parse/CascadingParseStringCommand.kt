@@ -14,9 +14,11 @@ import com.gsciolti.kata.marsrover.functional.left
 import com.gsciolti.kata.marsrover.functional.right
 import com.gsciolti.kata.marsrover.functional.update
 
+typealias StringCommandNotValid = CommandNotValid<String>
+
 object ParseSimpleStringCommand : ParseCommand<String> {
 
-    override fun invoke(command: String): Either<CommandNotValid, Command> =
+    override fun invoke(command: String): Either<StringCommandNotValid, Command> =
         when (command) {
             "f" -> MoveForward.right()
             "b" -> MoveBackward.right()
@@ -29,24 +31,23 @@ object ParseSimpleStringCommand : ParseCommand<String> {
 // todo refactor
 object ParseAtomicStringCommand : ParseCommand<String> {
 
-    override fun invoke(command: String): Either<CommandNotValid, Command> =
+    override fun invoke(command: String): Either<StringCommandNotValid, Command> =
         command
             .split("_")
             .update(mutableListOf<Command>()) { commands, nextCommand ->
-                ParseSimpleStringCommand(nextCommand).map {
-                    commands.add(it)
-                    commands
-                }
+                ParseSimpleStringCommand(nextCommand)
+                    .map { commands.apply { add(it) } }
             }
             .map(::AtomicCommand)
 }
 
-class CascadingParseStringCommand(
-    private val parsers: List<ParseCommand<String>>
-) : ParseCommand<String> {
+class CascadingParseStringCommand<T>(
+    private val firstParse: ParseCommand<T>,
+    private vararg val others: ParseCommand<T>
+) : ParseCommand<T> {
 
-    override fun invoke(command: String): Either<CommandNotValid, Command> =
-        parsers.fold(CommandNotValid("").left() as Either<CommandNotValid, Command>) { result, nextParse ->
+    override fun invoke(command: T): Either<CommandNotValid<T>, Command> =
+        others.fold(firstParse(command)) { result, nextParse ->
             result.flatMapLeft { nextParse(command) }
         }
 }

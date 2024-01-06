@@ -69,10 +69,8 @@ fun main(vararg args: String) {
 
     // todo better domain layer
     val parseCommand = CascadingParseStringCommand(
-        listOf(
-            ParseSimpleStringCommand,
-            ParseAtomicStringCommand
-        )
+        ParseSimpleStringCommand,
+        ParseAtomicStringCommand
     )
 
     val executeCommand =

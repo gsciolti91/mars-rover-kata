@@ -21,12 +21,12 @@ class ReportErrorAsString(
 
     private fun reportError(error: ExecuteCommandError): Output<String> =
         when (error) {
-            is CommandNotValid -> StringValue("Invalid command '${error.rawCommand}'")
+            is CommandNotValid<*> -> StringValue("Invalid command '${error.rawCommand}'")
             is BoundaryEncountered -> StringValue("Boundary encountered at [${error.move.currentRover.position.x},${error.move.currentRover.position.y}]")
             is ObstacleEncountered -> StringValue("Obstacle encountered at [${error.move.nextRover.position.x},${error.move.nextRover.position.y}]")
             is ErrorPrevented ->
                 when (error.error) {
-                    is CommandNotValid -> TODO("Never the case, it fails before")
+                    is CommandNotValid<*> -> TODO("Never the case, it fails before")
                     is BoundaryEncountered -> StringValue("Error prevented: Boundary encountered at [${error.error.move.currentRover.position.x},${error.error.move.currentRover.position.y}]")
                     is ObstacleEncountered -> StringValue("Error prevented: Obstacle encountered at [${error.error.move.nextRover.position.x},${error.error.move.nextRover.position.y}]")
                     is ErrorPrevented -> TODO("Never the case so far")

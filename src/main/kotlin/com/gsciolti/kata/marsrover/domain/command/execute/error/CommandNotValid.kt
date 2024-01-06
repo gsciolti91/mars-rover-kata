@@ -1,3 +1,3 @@
 package com.gsciolti.kata.marsrover.domain.command.execute.error
 
-class CommandNotValid(val rawCommand: String) : ExecuteCommandError()
+class CommandNotValid<IN>(val rawCommand: IN) : ExecuteCommandError()

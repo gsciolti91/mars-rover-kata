@@ -6,7 +6,6 @@ import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.execute.error.ErrorPrevented
 import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError
 import com.gsciolti.kata.marsrover.domain.command.execute.error.ObstacleEncountered
-import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.ReportError
 import com.gsciolti.kata.marsrover.domain.report.ReportRoverPosition
 import com.gsciolti.kata.marsrover.domain.report.output.Output
@@ -16,8 +15,8 @@ class ReportErrorAsString(
     private val reportRoverPosition: ReportRoverPosition<String>
 ) : ReportError<String> {
 
-    override fun invoke(error: MarsRoverError, rover: Rover): Output<String> =
-        reportError(error) + reportRoverPosition(rover)
+    override fun invoke(error: MarsRoverError): Output<String> =
+        reportError(error) + reportRoverPosition(error.lastValidRover)
 
     private fun reportError(error: MarsRoverError): Output<String> =
         when (error) {

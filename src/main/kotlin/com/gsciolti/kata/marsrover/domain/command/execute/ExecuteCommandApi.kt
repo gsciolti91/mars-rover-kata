@@ -16,6 +16,6 @@ class ExecuteCommandApi<IN>(
 
     override fun invoke(rover: Rover, rawCommand: IN): Either<MarsRoverError, Pair<Command, Rover>> =
         parseCommand(rawCommand)
-            .mapLeft { CommandNotValid(rawCommand, rover) }
+            .mapLeft { CommandNotValid(it.rawCommand, rover) }
             .flatMap { command: Command -> command.apply(rover, map) }
 }

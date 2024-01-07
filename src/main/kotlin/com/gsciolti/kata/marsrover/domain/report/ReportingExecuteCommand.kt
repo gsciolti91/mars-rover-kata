@@ -20,7 +20,7 @@ class ReportingExecuteCommand<CMD, OUT> internal constructor(
                 outputChannel.display(reportCommandExecuted(command, updatedRover))
             }
             .tapLeft { error ->
-                outputChannel.display(reportError(error, rover))
+                outputChannel.display(reportError(error))
             }
 }
 

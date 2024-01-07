@@ -2,7 +2,7 @@ package com.gsciolti.kata.marsrover.domain.report
 
 import com.gsciolti.kata.marsrover.domain.command.Command
 import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommand
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError
 import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.output.OutputChannel
 import com.gsciolti.kata.marsrover.functional.Either
@@ -14,7 +14,7 @@ class ReportingExecuteCommand<CMD, OUT> internal constructor(
     private val outputChannel: OutputChannel<OUT>,
 ) : ExecuteCommand<CMD> {
 
-    override fun invoke(rover: Rover, command: CMD): Either<ExecuteCommandError, Pair<Command, Rover>> =
+    override fun invoke(rover: Rover, command: CMD): Either<MarsRoverError, Pair<Command, Rover>> =
         delegateExecute(rover, command)
             .tap { (command, updatedRover) ->
                 outputChannel.display(reportCommandExecuted(command, updatedRover))

@@ -1,7 +1,8 @@
 package com.gsciolti.kata.marsrover.domain.command.execute
 
 import com.gsciolti.kata.marsrover.domain.command.Command
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError
 import com.gsciolti.kata.marsrover.domain.command.parse.ParseCommand
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.model.Rover
@@ -13,7 +14,8 @@ class ExecuteCommandApi<IN>(
     private val map: Map
 ) : ExecuteCommand<IN> {
 
-    override fun invoke(rover: Rover, rawCommand: IN): Either<ExecuteCommandError, Pair<Command, Rover>> =
+    override fun invoke(rover: Rover, rawCommand: IN): Either<MarsRoverError, Pair<Command, Rover>> =
         parseCommand(rawCommand)
+            .mapLeft { CommandNotValid(rawCommand, rover) }
             .flatMap { command: Command -> command.apply(rover, map) }
 }

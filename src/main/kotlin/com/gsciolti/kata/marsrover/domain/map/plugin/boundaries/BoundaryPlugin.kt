@@ -14,7 +14,7 @@ interface BoundaryPlugin : MapPlugin {
     override fun apply(): Map.Configuration.() -> Unit = {
         moveValidations.add { move: Move ->
             if (isNotValid(move))
-                BoundaryEncountered(move).left()
+                BoundaryEncountered(move, move.currentRover).left()
             else
                 move.right()
         }

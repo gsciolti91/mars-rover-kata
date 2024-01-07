@@ -2,14 +2,14 @@ package com.gsciolti.kata.marsrover.adapter.command.parse
 
 import com.gsciolti.kata.marsrover.domain.command.AtomicCommand
 import com.gsciolti.kata.marsrover.domain.command.Command
-import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
+import com.gsciolti.kata.marsrover.domain.command.execute.error.ParseCommandError
 import com.gsciolti.kata.marsrover.domain.command.parse.ParseCommand
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.update
 
 object ParseAtomicStringCommand : ParseCommand<String> {
 
-    override fun invoke(command: String): Either<CommandNotValid<String>, Command> =
+    override fun invoke(command: String): Either<ParseCommandError<String>, Command> =
         command
             .split("_")
             .update(mutableListOf<Command>()) { commands, nextCommand ->

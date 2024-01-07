@@ -4,7 +4,7 @@ import com.gsciolti.kata.marsrover.adapter.report.output.StringValue
 import com.gsciolti.kata.marsrover.domain.command.execute.error.BoundaryEncountered
 import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.execute.error.ErrorPrevented
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError
 import com.gsciolti.kata.marsrover.domain.command.execute.error.ObstacleEncountered
 import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.ReportError
@@ -16,10 +16,10 @@ class ReportErrorAsString(
     private val reportRoverPosition: ReportRoverPosition<String>
 ) : ReportError<String> {
 
-    override fun invoke(error: ExecuteCommandError, rover: Rover): Output<String> =
+    override fun invoke(error: MarsRoverError, rover: Rover): Output<String> =
         reportError(error) + reportRoverPosition(rover)
 
-    private fun reportError(error: ExecuteCommandError): Output<String> =
+    private fun reportError(error: MarsRoverError): Output<String> =
         when (error) {
             is CommandNotValid<*> -> StringValue("Invalid command '${error.rawCommand}'")
             is BoundaryEncountered -> StringValue("Boundary encountered at [${error.move.currentRover.position.x},${error.move.currentRover.position.y}]")

@@ -11,7 +11,7 @@ class Obstacles(private val coordinates: List<Coordinates>) : MapPlugin {
     override fun apply(): Map.Configuration.() -> Unit = {
         moveValidations.add { move ->
             if (coordinates.contains(move.nextRover.position))
-                ObstacleEncountered(move).left()
+                ObstacleEncountered(move, move.currentRover).left()
             else
                 move.right()
         }

@@ -1,6 +1,6 @@
 package com.gsciolti.kata.marsrover.domain.command
 
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ErrorPrevented
+import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandErrorPrevented
 import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError.ExecuteCommandError
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.model.Rover
@@ -21,7 +21,7 @@ class AtomicCommand(private val commands: List<Command>) : Command {
                     .map { (_, updatedRover) -> updatedRover }
             }
             .map { finalRover -> this and finalRover }
-            .mapLeft { ErrorPrevented(it, rover) }
+            .mapLeft { ExecuteCommandErrorPrevented(it, rover) }
 
     fun commandsExecuted(): List<Pair<Command, Rover>> = commandsExecuted
 }

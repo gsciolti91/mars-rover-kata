@@ -1,6 +1,6 @@
 package com.gsciolti.kata.marsrover.domain.map
 
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError.ExecuteCommandError
 import com.gsciolti.kata.marsrover.domain.map.plugin.MapPlugin
 import com.gsciolti.kata.marsrover.domain.model.Move
 import com.gsciolti.kata.marsrover.domain.model.Rover

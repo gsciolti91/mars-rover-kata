@@ -1,7 +1,6 @@
 package com.gsciolti.kata.marsrover.domain.command.parse
 
 import com.gsciolti.kata.marsrover.domain.command.Command
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ParseCommandError
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.flatMapLeft
 

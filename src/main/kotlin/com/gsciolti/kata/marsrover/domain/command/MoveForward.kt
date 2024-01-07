@@ -1,6 +1,6 @@
 package com.gsciolti.kata.marsrover.domain.command
 
-import com.gsciolti.kata.marsrover.domain.command.execute.error.ExecuteCommandError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError.ExecuteCommandError
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.model.Direction.East
 import com.gsciolti.kata.marsrover.domain.model.Direction.North

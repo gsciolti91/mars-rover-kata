@@ -2,9 +2,9 @@ package com.gsciolti.kata.marsrover.adapter.report
 
 import com.gsciolti.kata.marsrover.adapter.report.output.StringValue
 import com.gsciolti.kata.marsrover.domain.command.execute.error.BoundaryEncountered
-import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.execute.error.ErrorPrevented
 import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.execute.error.ObstacleEncountered
 import com.gsciolti.kata.marsrover.domain.report.ReportError
 import com.gsciolti.kata.marsrover.domain.report.ReportRoverPosition

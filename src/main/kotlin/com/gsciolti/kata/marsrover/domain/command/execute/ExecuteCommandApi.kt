@@ -1,8 +1,8 @@
 package com.gsciolti.kata.marsrover.domain.command.execute
 
 import com.gsciolti.kata.marsrover.domain.command.Command
-import com.gsciolti.kata.marsrover.domain.command.execute.error.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError
+import com.gsciolti.kata.marsrover.domain.command.execute.error.MarsRoverError.CommandNotValid
 import com.gsciolti.kata.marsrover.domain.command.parse.ParseCommand
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.model.Rover

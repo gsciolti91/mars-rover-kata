@@ -7,7 +7,8 @@ import com.gsciolti.kata.marsrover.adapter.report.ReportErrorAsString
 import com.gsciolti.kata.marsrover.adapter.report.ReportRoverPositionAsString
 import com.gsciolti.kata.marsrover.adapter.report.output.File
 import com.gsciolti.kata.marsrover.adapter.report.output.StdOut
-import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteCommandApi
+import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteSingleCommand
+import com.gsciolti.kata.marsrover.domain.command.execute.handlingMultipleCommands
 import com.gsciolti.kata.marsrover.domain.command.parse.CascadingParseCommand
 import com.gsciolti.kata.marsrover.domain.map.Map
 import com.gsciolti.kata.marsrover.domain.map.Map.Configuration
@@ -22,7 +23,6 @@ import com.gsciolti.kata.marsrover.domain.model.Direction.South
 import com.gsciolti.kata.marsrover.domain.model.Direction.West
 import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.domain.report.reportingWith
-import com.gsciolti.kata.marsrover.functional.update
 
 fun main(vararg args: String) {
 
@@ -38,8 +38,6 @@ fun main(vararg args: String) {
 
     val outputFile = params["-out"]?.let(::File)
 
-    val commands = params["-command"]!!.split(",")
-
     val obstacles = params["-obstacles"]?.let {
         it.split(";")
             .map {
@@ -50,7 +48,7 @@ fun main(vararg args: String) {
         ?.let(::Obstacles)
         ?: Obstacles(emptyList())
 
-    val mapPlugin = params["-map"]?.let {
+    val mapBoundaries = params["-map"]?.let {
         val mapRegex = """^(\d)+x(\d)+,?(w)?$""".toRegex()
         val (_, width, height, type) = mapRegex.find(it)!!.groupValues
         when (type) {
@@ -61,7 +59,7 @@ fun main(vararg args: String) {
     }
 
     val map = Map {
-        apply(mapPlugin)
+        apply(mapBoundaries)
         apply(obstacles)
     }
 
@@ -73,22 +71,25 @@ fun main(vararg args: String) {
         ParseAtomicStringCommand
     )
 
+    val input = params["-command"]!!
+
     val executeCommand =
-        ExecuteCommandApi(parseCommand, map)
+        ExecuteSingleCommand(parseCommand, map)
             .reportingWith(
                 ReportCommandExecutedAsString(ReportRoverPositionAsString),
                 ReportErrorAsString(ReportRoverPositionAsString),
                 outputChannel
             )
+            .handlingMultipleCommands(SplitBy(","))
 
-    commands.update(
-        initialState = initialRover,
-        updateState = { rover, command ->
-            executeCommand(rover, command)
-                .map { (_, updatedRover) -> updatedRover }
-        })
+    executeCommand(initialRover, input)
 
     outputChannel.flush()
+}
+
+class SplitBy(private val separator: String) : (String) -> Iterable<String> {
+    override fun invoke(value: String): Iterable<String> =
+        value.split(separator)
 }
 
 private fun String.toDirection() =

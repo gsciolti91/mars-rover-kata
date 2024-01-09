@@ -9,7 +9,7 @@ import com.gsciolti.kata.marsrover.domain.model.Rover
 import com.gsciolti.kata.marsrover.functional.Either
 import com.gsciolti.kata.marsrover.functional.flatMap
 
-class ExecuteCommandApi<IN>(
+class ExecuteSingleCommand<IN>(
     private val parseCommand: ParseCommand<IN>,
     private val map: Map
 ) : ExecuteCommand<IN> {

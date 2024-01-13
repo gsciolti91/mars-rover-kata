@@ -11,7 +11,6 @@ import com.gsciolti.kata.marsrover.domain.command.execute.ExecuteSingleCommand
 import com.gsciolti.kata.marsrover.domain.command.execute.handlingMultipleCommands
 import com.gsciolti.kata.marsrover.domain.command.parse.CascadingParseCommand
 import com.gsciolti.kata.marsrover.domain.map.Map
-import com.gsciolti.kata.marsrover.domain.map.Map.Configuration
 import com.gsciolti.kata.marsrover.domain.map.plugin.MapPlugin
 import com.gsciolti.kata.marsrover.domain.map.plugin.Obstacles
 import com.gsciolti.kata.marsrover.domain.map.plugin.boundaries.Boundaries
@@ -22,6 +21,7 @@ import com.gsciolti.kata.marsrover.domain.model.Direction.North
 import com.gsciolti.kata.marsrover.domain.model.Direction.South
 import com.gsciolti.kata.marsrover.domain.model.Direction.West
 import com.gsciolti.kata.marsrover.domain.model.Rover
+import com.gsciolti.kata.marsrover.domain.report.output.OutputChannel
 import com.gsciolti.kata.marsrover.domain.report.reportingWith
 
 fun main(vararg args: String) {
@@ -36,7 +36,7 @@ fun main(vararg args: String) {
     val (_, x, y, d) = params["-start"]?.let(startRegex::find)!!.groupValues
     val initialRover = Rover(Coordinates(x.toInt(), y.toInt()), d.toDirection())
 
-    val outputFile = params["-out"]?.let(::File)
+    val outputFile = params["-out"]?.let(::File) ?: OutputChannel.None()
 
     val obstacles = params["-obstacles"]?.let {
         it.split(";")
@@ -56,14 +56,14 @@ fun main(vararg args: String) {
             "w" -> ::Wrap
             else -> TODO("Unrecognized map type")
         }(width.toInt(), height.toInt())
-    }
+    } ?: MapPlugin.None
 
     val map = Map {
         apply(mapBoundaries)
         apply(obstacles)
     }
 
-    val outputChannel = outputFile?.let { StdOut() + outputFile } ?: StdOut()
+    val outputChannel = StdOut() + outputFile
 
     // todo better domain layer
     val parseCommand = CascadingParseCommand(
@@ -100,6 +100,3 @@ private fun String.toDirection() =
         "w" -> West
         else -> TODO("Direction not recognized")
     }
-
-fun Configuration.apply(plugin: MapPlugin?): Configuration =
-    also { plugin?.apply()?.invoke(this) }

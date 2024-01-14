@@ -26,37 +26,16 @@ import com.gsciolti.kata.marsrover.domain.report.reportingWith
 
 fun main(vararg args: String) {
 
-    // todo extract parse to functions
     val params = args.associate {
         val keyValue = it.split("=")
         keyValue[0] to keyValue[1]
     }
 
-    val startRegex = """^(\d+),(\d+),([nesw])$""".toRegex()
-    val (_, x, y, d) = params["-start"]?.let(startRegex::find)!!.groupValues
-    val initialRover = Rover(Coordinates(x.toInt(), y.toInt()), d.toDirection())
-
-    val outputFile = params["-out"]?.let(::File) ?: OutputChannel.None()
-
-    val obstacles = params["-obstacles"]?.let {
-        it.split(";")
-            .map {
-                val rawCoordinates = it.split(",")
-                Coordinates(rawCoordinates[0].replace("[", "").toInt(), rawCoordinates[1].replace("]", "").toInt())
-            }
-    }
-        ?.let(::Obstacles)
-        ?: Obstacles(emptyList())
-
-    val mapBoundaries = params["-map"]?.let {
-        val mapRegex = """^(\d)+x(\d)+,?(w)?$""".toRegex()
-        val (_, width, height, type) = mapRegex.find(it)!!.groupValues
-        when (type) {
-            "" -> ::Boundaries
-            "w" -> ::Wrap
-            else -> TODO("Unrecognized map type")
-        }(width.toInt(), height.toInt())
-    } ?: MapPlugin.None
+    val initialRover = parseInitialRover(params)
+    val outputFile = parseOutputFile(params)
+    val obstacles = parseObstaclesPlugin(params)
+    val mapBoundaries = parseMapBoundariesPlugin(params)
+    val rawCommand = parseCommand(params)
 
     val map = Map {
         apply(mapBoundaries)
@@ -71,8 +50,6 @@ fun main(vararg args: String) {
         ParseAtomicStringCommand
     )
 
-    val input = params["-command"]!!
-
     val executeCommand =
         ExecuteSingleCommand(parseCommand, map)
             .reportingWith(
@@ -82,14 +59,44 @@ fun main(vararg args: String) {
             )
             .handlingMultipleCommands(SplitBy(","))
 
-    executeCommand(initialRover, input)
+    executeCommand(initialRover, rawCommand)
 
     outputChannel.flush()
 }
 
-class SplitBy(private val separator: String) : (String) -> Iterable<String> {
-    override fun invoke(value: String): Iterable<String> =
-        value.split(separator)
+private fun parseCommand(params: kotlin.collections.Map<String, String>) =
+    params["-command"]!!
+
+private fun parseMapBoundariesPlugin(params: kotlin.collections.Map<String, String>) =
+    params["-map"]?.let {
+        val mapRegex = """^(\d)+x(\d)+,?(w)?$""".toRegex()
+        val (_, width, height, type) = mapRegex.find(it)!!.groupValues
+        when (type) {
+            "" -> ::Boundaries
+            "w" -> ::Wrap
+            else -> TODO("Unrecognized map type")
+        }(width.toInt(), height.toInt())
+    } ?: MapPlugin.None
+
+private fun parseObstaclesPlugin(params: kotlin.collections.Map<String, String>) =
+    params["-obstacles"]?.let {
+        it.split(";")
+            .map {
+                val rawCoordinates = it.split(",")
+                Coordinates(rawCoordinates[0].replace("[", "").toInt(), rawCoordinates[1].replace("]", "").toInt())
+            }
+    }
+        ?.let(::Obstacles)
+        ?: Obstacles(emptyList())
+
+private fun parseOutputFile(params: kotlin.collections.Map<String, String>) =
+    params["-out"]?.let(::File) ?: OutputChannel.None()
+
+private fun parseInitialRover(params: kotlin.collections.Map<String, String>): Rover {
+    val startRegex = """^(\d+),(\d+),([nesw])$""".toRegex()
+    val (_, x, y, d) = params["-start"]?.let(startRegex::find)!!.groupValues
+    val initialRover = Rover(Coordinates(x.toInt(), y.toInt()), d.toDirection())
+    return initialRover
 }
 
 private fun String.toDirection() =
@@ -100,3 +107,8 @@ private fun String.toDirection() =
         "w" -> West
         else -> TODO("Direction not recognized")
     }
+
+class SplitBy(private val separator: String) : (String) -> Iterable<String> {
+    override fun invoke(value: String): Iterable<String> =
+        value.split(separator)
+}
